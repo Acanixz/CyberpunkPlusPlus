@@ -1,0 +1,9 @@
+{
+    "prettier.enable": false,
+    "prettier.requireConfig": true,
+    "editor.formatOnSave": false,
+    "files.associations": {
+        "xiosbase": "cpp",
+        "xlocale": "cpp"
+    }
+}
