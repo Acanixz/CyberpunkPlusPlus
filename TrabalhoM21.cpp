@@ -1,8 +1,10 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <time.h>
 #include <conio.h>
 #include <Windows.h>
+#include <locale.h>
 using namespace std;
 
 // Funções //
@@ -13,7 +15,7 @@ int VerificarOpcao(int valor = 0, int min = 0, int max = 0){
     return -1;
 }
 
-void Display(string msg, bool Newline = true, int coordX = -1, int coordY = -1){
+void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, bool showCursor = false, bool centralize = false){
 
     if (coordX >= 0 || coordY >= 0){
         HANDLE STD_OH = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -23,14 +25,66 @@ void Display(string msg, bool Newline = true, int coordX = -1, int coordY = -1){
         
         if (coordX >= 0)
             coord.X = coordX;
+            if (centralize)
+                coord.X = coord.X - msg.length()/2;
         if (coordY >= 0)
             coord.Y = coordY;
+
         SetConsoleCursorPosition(STD_OH, coord);
+
+        cursorInfo.bVisible = showCursor;
+        SetConsoleCursorInfo(STD_OH, &cursorInfo);
     }
     
     cout << msg;
     if (Newline)
         cout << endl;
+}
+
+void DisplayAnimation(string filePath, string fileName, int frames = -1, int cornerX = -1, int cornerY = -1, int waitTime = 1000){
+    string linha;
+    ifstream frame;
+    int i = 0; // Linha atual
+    int j = 0; // Frame atual
+    switch (frames)
+    {
+    case -1: // Mostra apenas um frame
+        /* code */
+        frame.open(filePath + fileName);
+        while (getline(frame, linha)){
+            Display(linha, cornerX, cornerY + i, false);
+            i++;
+        }
+        
+        frame.close();
+        break;
+    
+    default: // Abre sequencia de frames com esperas de waitTime(milisegundos)
+        for (j; j < frames; j++){
+            i = 0;
+            frame.open(filePath + fileName + to_string(j) + ".txt");
+            while (getline(frame, linha)){
+                Display(linha, cornerX, cornerY + i, false);
+                i++;
+            }
+            
+            frame.close();
+            Sleep(waitTime);
+        }
+        break;
+    }
+}
+
+void Carregar_Menu(){
+    Sleep(1000);
+    DisplayAnimation("Frames/MenuAnimated/", "MenuFrame_", 9, 10, 2, 50);
+    Display("Cyberpunk++", 50, 1, false, false, true);
+    Sleep(500);
+    Display("Desenvolvido por", 50, 26, false, false, true);
+    Display("Eduardo da Rocha Weber", 50, 27, false, false, true);
+    Display("Herick Vitor Vieira Bittencourt", 50, 28, false, false, true);
+    Display("Eduardo Miguel Fuchs Perez", 50, 29, false, false, true);
+    Display("Aperte qualquer tecla para comecar", 50, 25, false, false, true);
 }
 
 // Structs // 
@@ -77,10 +131,10 @@ void jogar_fase(Jogador jog, Fase fase);
 
 int main()
 {
+    setlocale(LC_ALL, "Portuguese");
     srand(time(NULL));
 
-    Display("Ola mundo!", true);
-    Display("HAHAHA", false, 10, 5);
+    Carregar_Menu();
     /*Arma aI = {1, 5};
     Arma aJ = {4, 10};
 
