@@ -15,10 +15,9 @@ int VerificarOpcao(int valor = 0, int min = 0, int max = 0){
     return -1;
 }
 
-void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, bool showCursor = false, bool centralize = false){
-
+void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, int textColor = 7, bool showCursor = false, bool centralize = false){
+    HANDLE STD_OH = GetStdHandle(STD_OUTPUT_HANDLE);
     if (coordX >= 0 || coordY >= 0){
-        HANDLE STD_OH = GetStdHandle(STD_OUTPUT_HANDLE);
         CONSOLE_CURSOR_INFO cursorInfo;
         GetConsoleCursorInfo(STD_OH, &cursorInfo);
         COORD coord;
@@ -36,12 +35,13 @@ void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, 
         SetConsoleCursorInfo(STD_OH, &cursorInfo);
     }
     
+    SetConsoleTextAttribute(STD_OH, textColor);
     cout << msg;
     if (Newline)
         cout << endl;
 }
 
-void DisplayAnimation(string filePath, string fileName, int frames = -1, int cornerX = -1, int cornerY = -1, int waitTime = 1000){
+void DisplayAnimation(string filePath, string fileName, int frames = -1, int textColor = 7, int cornerX = -1, int cornerY = -1, int waitTime = 1000){
     string linha;
     ifstream frame;
     int i = 0; // Linha atual
@@ -52,7 +52,7 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int cor
         /* code */
         frame.open(filePath + fileName);
         while (getline(frame, linha)){
-            Display(linha, cornerX, cornerY + i, false);
+            Display(linha, cornerX, cornerY + i, false, textColor);
             i++;
         }
         
@@ -64,7 +64,7 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int cor
             i = 0;
             frame.open(filePath + fileName + to_string(j) + ".txt");
             while (getline(frame, linha)){
-                Display(linha, cornerX, cornerY + i, false);
+                Display(linha, cornerX, cornerY + i, false, textColor);
                 i++;
             }
             
@@ -76,15 +76,17 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int cor
 }
 
 void Carregar_Menu(){
+    Display("", 50, 12, false, 7, true);
     Sleep(1000);
-    DisplayAnimation("Frames/MenuAnimated/", "MenuFrame_", 9, 10, 2, 50);
-    Display("Cyberpunk++", 50, 1, false, false, true);
+    DisplayAnimation("Frames/MenuAnimated/", "MenuFrame_", 9, 10, 10, 2, 50);
+    Display("Cyberpunk++", 50, 1, false, 10, false, true);
     Sleep(500);
-    Display("Desenvolvido por", 50, 26, false, false, true);
-    Display("Eduardo da Rocha Weber", 50, 27, false, false, true);
-    Display("Herick Vitor Vieira Bittencourt", 50, 28, false, false, true);
-    Display("Eduardo Miguel Fuchs Perez", 50, 29, false, false, true);
-    Display("Aperte qualquer tecla para comecar", 50, 25, false, false, true);
+    Display("Desenvolvido por:", 85, 3, false, 14, false, true);
+    Display("Eduardo da Rocha Weber", 85, 5, false, 14, false, true);
+    Display("Herick Vitor Vieira Bittencourt", 85, 6, false, 14, false, true);
+    Display("Eduardo Miguel Fuchs Perez", 85, 7, false, 14, false, true);
+    Display("Aperte qualquer tecla para comecar", 50, 25, false, 160, false, true);
+    Display("", 50, 12, false, 7); // Essencial a cada cls ou a tela inteira é preenchida pela ultima cor
 }
 
 // Structs // 
@@ -135,6 +137,49 @@ int main()
     srand(time(NULL));
 
     Carregar_Menu();
+    while (true){
+        if (kbhit())
+            break;
+        Sleep(50);
+    }
+    while(kbhit()) getch();
+
+    system("cls");
+
+    DisplayAnimation("Frames/Tutorial/", "Tutorial.txt", -1, 7, 50, 1);
+
+    Display("Tutorial Basico:", 30, 2, false, 7, false, true);
+    
+    Display("*", 20, 4, false, 7);
+    Display("<--- Jogador", 30, 4, false, 7, false, true);
+    Display("*", 20, 7, false, 4);
+    Display("<--- Inimigo", 30, 7, false, 7, false, true);
+
+    Display(" ", 20, 11, false, 38);
+    Display("<--- Chao", 30, 11, false, 7, false, true);
+    Display(" ", 20, 14, false, 119);
+    Display("<--- Parede", 30, 14, false, 7, false, true);
+
+    Display("Use as teclas WASD para se movimentar pelo mapa", 50, 23, false, 7, false, true);
+    Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, false, 7, false, true);
+    Sleep(2000);
+    Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
+    while(kbhit()) getch();
+    while (true){
+        if (kbhit())
+            break;
+        Sleep(50);
+    }
+    while(kbhit()) getch();
+
+    /// TO-DO
+    // - Separar o tutorial em função
+    // - Criar uma função para system("cls") seguro
+    // - Criar uma função para limpar o buffer para evitar repetir o while loop
+    // - Criar uma função de loop para aguardo de sinal de entrada
+    // - O jogo em si, que é o mais importante e ainda não existe
+
+
     /*Arma aI = {1, 5};
     Arma aJ = {4, 10};
 
@@ -155,9 +200,6 @@ int main()
     fase.inimigos[4] = chefao;
 
     jogar_fase(jog, fase);*/
-
-    int a = 0;
-    cin >> a; // Só para a versão compilada não fechar sozinha
 }
 
 template <typename T>
