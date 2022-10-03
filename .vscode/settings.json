@@ -4,6 +4,8 @@
     "editor.formatOnSave": false,
     "files.associations": {
         "xiosbase": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "ostream": "cpp",
+        "iostream": "cpp"
     }
 }

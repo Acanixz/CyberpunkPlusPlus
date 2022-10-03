@@ -7,12 +7,64 @@
 #include <locale.h>
 using namespace std;
 
+// Structs // 
+struct Arma
+{
+    int dano_minimo;
+    int dano_maximo;
+};
+
+struct Jogador
+{
+    int nivel;
+    int vida;
+    Arma arma;
+    int posicao[2];
+};
+
+struct Inimigo
+{
+    string nome;
+    int vida;
+    Arma arma;
+};
+
+struct Bloco
+{
+    bool bloqueado = false;
+    Inimigo *inimigo;
+};
+
+struct Fase
+{
+    string nome;
+    Bloco* mapa[];
+    Inimigo inimigos[5];
+};
+
 // Funções //
+
 int VerificarOpcao(int valor = 0, int min = 0, int max = 0){
     if (valor >= min || valor <= max){
         return valor;
     }
     return -1;
+}
+
+void LimparInputBuffer(){
+    while(kbhit()) getch();
+}
+
+void EsperarInput(char teclaEsperada = '0', int waitTimer = 50){
+    while (true){
+        char tecla = getch();
+        if (kbhit())
+            cout << "Pressionado!" << endl;
+            if (teclaEsperada == '0' || tecla == teclaEsperada)
+                break;
+        Sleep(waitTimer);
+    }
+    LimparInputBuffer();
 }
 
 void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, int textColor = 7, bool showCursor = false, bool centralize = false){
@@ -75,6 +127,11 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
     }
 }
 
+void LimparTela(){
+    Display("", 50, 12, false, 7); // Se der cls antes disso, a tela fica com a ultima cor usada
+    system("cls");
+}
+
 void Carregar_Menu(){
     Display("", 50, 12, false, 7, true);
     Sleep(1000);
@@ -86,66 +143,9 @@ void Carregar_Menu(){
     Display("Herick Vitor Vieira Bittencourt", 85, 6, false, 14, false, true);
     Display("Eduardo Miguel Fuchs Perez", 85, 7, false, 14, false, true);
     Display("Aperte qualquer tecla para comecar", 50, 25, false, 160, false, true);
-    Display("", 50, 12, false, 7); // Essencial a cada cls ou a tela inteira é preenchida pela ultima cor
 }
 
-// Structs // 
-struct Arma
-{
-    int dano_minimo;
-    int dano_maximo;
-};
-
-struct Jogador
-{
-    int nivel;
-    int vida;
-    Arma arma;
-    int posicao[2];
-};
-
-struct Inimigo
-{
-    string nome;
-    int vida;
-    Arma arma;
-};
-
-struct Bloco
-{
-    bool bloqueado = false;
-    Inimigo *inimigo;
-};
-
-struct Fase
-{
-    string nome;
-    Inimigo inimigos[5];
-};
-
-template <typename T>
-bool morreu(T personagem);
-
-template <typename Tata, typename Tdef>
-Tdef ataque(Tata atacante, Tdef defensor);
-
-void jogar_fase(Jogador jog, Fase fase);
-
-int main()
-{
-    setlocale(LC_ALL, "Portuguese");
-    srand(time(NULL));
-
-    Carregar_Menu();
-    while (true){
-        if (kbhit())
-            break;
-        Sleep(50);
-    }
-    while(kbhit()) getch();
-
-    system("cls");
-
+void Carregar_Tutorial(){
     DisplayAnimation("Frames/Tutorial/", "Tutorial.txt", -1, 7, 50, 1);
 
     Display("Tutorial Basico:", 30, 2, false, 7, false, true);
@@ -164,22 +164,95 @@ int main()
     Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, false, 7, false, true);
     Sleep(2000);
     Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
-    while(kbhit()) getch();
-    while (true){
-        if (kbhit())
-            break;
-        Sleep(50);
+}
+
+/*template <int A, int L>
+Fase* GerarFase(){
+    Fase* fase = new Fase;
+    fase->nome = "Night City";
+
+    //Bloco** mapa = new Bloco*[A]; // Geração de linhas
+
+    auto mapa = new Bloco*[A][L];
+    //for (int i = 0; i < A; i++){ // Geração de colunas
+    //    mapa[i] = new Bloco[L];
+    //}
+
+    cout << mapa[0][0] << endl;
+    for (int i = 0; i < A; i++){
+        cout << endl;
+        for (int j = 0; j < L; j++){
+            //cout << mapa[A][L].bloqueado << endl;
+        }
     }
-    while(kbhit()) getch();
+    
+    
 
-    /// TO-DO
-    // - Separar o tutorial em função
-    // - Criar uma função para system("cls") seguro
-    // - Criar uma função para limpar o buffer para evitar repetir o while loop
-    // - Criar uma função de loop para aguardo de sinal de entrada
-    // - O jogo em si, que é o mais importante e ainda não existe
+    fase->mapa = *mapa;
+    return fase;
+}*/
+
+Mapa CriarMapa(int altura, int largura){
+    Mapa mapa;
+    return mapa;
+}
+
+Fase CriarFase(int numInimigos, Inimigo* inimigos, int alturaMapa, int larguraMapa){
+
+}
+
+void DisplayFase(Fase* fase, int A = 10, int L = 20){
+    LimparTela();
+    string borda = "@";
+    int bordaX = 50 - L + 1;
+
+    for (int i = 0; i < L; i++){
+        borda = borda + "-";
+    }
+    Display(borda, 50, 10, false, 10, false, true);
+
+    for (int i = 0; i < A; i++){
+        for (int j = 0; j < L; j++){
+
+            Display(" ", bordaX + j, 11 + i, false, 38);
+
+            //if (mapa[i][j].bloqueado)
+            //    Display(" ", bordaX + j, 11 + i, false, 119);
+        }
+    }
+}
+
+template <typename T>
+bool morreu(T personagem);
+
+template <typename Tata, typename Tdef>
+Tdef ataque(Tata atacante, Tdef defensor);
+
+void jogar_fase(Jogador jog, Fase fase);
 
 
+int main()
+{
+    setlocale(LC_ALL, "Portuguese");
+    srand(time(NULL));
+
+    Carregar_Menu();
+    EsperarInput();
+    LimparTela();
+
+    Carregar_Tutorial();
+    LimparInputBuffer();
+    EsperarInput();
+
+    LimparTela();
+
+    Display("Criando Fase..", 50, 5, false, 10, true, true);
+    //Fase* fase = GerarFase<10,10>();
+    
+    //DisplayFase(fase);
+
+    LimparInputBuffer();
+    EsperarInput();
     /*Arma aI = {1, 5};
     Arma aJ = {4, 10};
 
