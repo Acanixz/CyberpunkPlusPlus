@@ -14,22 +14,25 @@ using namespace std;
 // Structs // 
 struct Arma
 {
-	int dano_minimo;
-	int dano_maximo;
+	string nome;
+	string descricaoAttk = "atacou";
+	string killMsg = "matou";
+	int dano_minimo = 1;
+	int dano_maximo = 1;
 };
 
 struct Jogador
 {
-	int nivel;
-	int vida;
-	Arma arma;
+	int nivel = 0;
+	int vida = 100;
+	Arma* arma;
 	int posicao[2];
 };
 
 struct Inimigo
 {
 	string nome;
-	int vida;
+	int vida = 100;
 	Arma arma;
 };
 
@@ -53,6 +56,25 @@ struct Fase
 };
 
 // Funções //
+
+Arma* GerarArmas(){
+	Arma* armas = new Arma[10];
+	armas[0].nome = "Punhos";
+	armas[0].descricaoAttk = " deu um soco em ";
+	armas[0].killMsg = "saiu na pancadaria e venceu de";
+
+	armas[1].nome = "Mantis Blade";
+	armas[1].descricaoAttk = " deu um corte em ";
+	armas[1].killMsg = " desconectou a cabeca de ";
+	return armas;
+}
+
+Jogador* GerarJogador(Arma* arma){
+	Jogador* jogador = new Jogador;
+	jogador->arma = arma;
+
+	return jogador;
+}
 
 int RNG(int min = 0, int max = 1){
 	int num = 0;
@@ -141,8 +163,12 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
 	}
 }
 
+void LimparCores(){
+	Display("", 50, 12, false, 7);
+}
+
 void LimparTela() {
-	Display("", 50, 12, false, 7); // Se der cls antes disso, a tela fica com a ultima cor usada
+	LimparCores();  // Se der cls antes disso, a tela fica com a ultima cor usada
 	system("cls");
 }
 
@@ -157,6 +183,7 @@ void Carregar_Menu() {
 	Display("Herick Vitor Vieira Bittencourt", 85, 6, false, 14, false, true);
 	Display("Eduardo Miguel Fuchs Perez", 85, 7, false, 14, false, true);
 	Display("Aperte qualquer tecla para comecar", 50, 25, false, 160, false, true);
+	LimparCores();
 }
 
 void Carregar_Tutorial() {
@@ -180,6 +207,24 @@ void Carregar_Tutorial() {
 	Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
 }
 
+bool VerificarCord(Fase* fase, int tipo, int coords[2] = {0}){
+	switch (tipo)
+	{
+	case 0: // Verificação por existência do bloco na grade (Y e X)
+		if ((coords[0] >= 0 && coords[0] < fase->mapa.A) && (coords[1] >= 0 && coords[1] < fase->mapa.L)){
+			return true;
+		}
+		break;
+	
+	case 1: // Verificação por espaço bloqueado
+		return fase->mapa.blocos[coords[0]][coords[1]].bloqueado;
+
+	default:
+		break;
+	}
+	return false;
+}
+
 Mapa CriarMapa(int A, int L) {
 	Mapa mapa;
 
@@ -197,9 +242,24 @@ Mapa CriarMapa(int A, int L) {
 Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa, int larguraMapa) {
 	Fase* fase = new Fase;
 	fase->nome = nome;
+	Display("Gerando mapa", 50, 11, false, 10, false, true);
 	fase->mapa = CriarMapa(alturaMapa, larguraMapa);
-
-
+	Display("Gerando obstaculos", 50, 12, false, 10, false, true);
+	int quantObstaculos = (alturaMapa/4 + larguraMapa/4);
+	if (quantObstaculos%2 != 0){
+		quantObstaculos++;
+	}
+	
+	for (int i = 0; i < quantObstaculos;){ // For loop sem incremento automatico
+		Sleep(500);
+		int localEscolhido[2] = {RNG(0, alturaMapa), RNG(0, larguraMapa)};
+		if (VerificarCord(fase, 0, localEscolhido)){ // Espaço existe?
+			if (VerificarCord(fase, 1, localEscolhido) == false){ // Espaço está livre?
+				fase->mapa.blocos[localEscolhido[0]][localEscolhido[1]].bloqueado = true;
+				i++;
+			}
+		}
+	}
 	return fase;
 }
 
@@ -251,6 +311,8 @@ int main()
 	setlocale(LC_ALL, "Portuguese");
 	srand(time(NULL));
 
+	Arma* armas = GerarArmas();
+
 	Carregar_Menu();
 	EsperarInput();
 	LimparTela();
@@ -260,12 +322,14 @@ int main()
 	EsperarInput();
 
 	LimparTela();
-
+	Display("Criando fase", 50, 10, false, 10, false, true);
 	Fase* fase = CriarFase(10, NULL, "Night City", 10, 30);
 	LimparTela();
 	DisplayFase(fase);
 
 	Display(fase->nome, 50, 1, false, 10, false, true);
+
+	Jogador* player = GerarJogador(&armas[0]);
 	LimparInputBuffer();
 	EsperarInput();
 	/*Arma aI = {1, 5};
@@ -290,7 +354,7 @@ int main()
 	jogar_fase(jog, fase);*/
 }
 
-template <typename T>
+/*template <typename T>
 bool morreu(T personagem)
 {
 	if (personagem.vida < 0)
@@ -342,3 +406,4 @@ void jogar_fase(Jogador jog, Fase fase)
 
 	cout << "O jogador passou a fase";
 }
+*/
