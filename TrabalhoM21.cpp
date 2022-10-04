@@ -49,7 +49,7 @@ struct Mapa {
 struct Fase
 {
 	string nome;
-	Mapa* mapa;
+	Mapa mapa;
 	Inimigo inimigos[5];
 };
 
@@ -69,8 +69,6 @@ void LimparInputBuffer() {
 void EsperarInput(char teclaEsperada = '0', int waitTimer = 50) {
 	while (true) {
 		char tecla = _getch();
-		if (_kbhit())
-			cout << "Pressionado!" << endl;
 		if (teclaEsperada == '0' || tecla == teclaEsperada)
 			break;
 		Sleep(waitTimer);
@@ -177,7 +175,7 @@ void Carregar_Tutorial() {
 	Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
 }
 
-Mapa* CriarMapa(int A, int L) {
+Mapa CriarMapa(int A, int L) {
 	Mapa mapa;
 
 	mapa.A = A;
@@ -189,7 +187,7 @@ Mapa* CriarMapa(int A, int L) {
 	}
 
 	mapa.blocos[1][0].bloqueado = true;
-	return &mapa;
+	return mapa;
 }
 
 Fase CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa, int larguraMapa) {
@@ -215,10 +213,10 @@ void DisplayFase(Fase* fase, int A = 10, int L = 20) {
 
 			Display(" ", bordaX + j, 11 + i, false, 38);
 
-			if (fase->mapa->blocos[i][j].bloqueado){
+			if (fase->mapa.blocos[i][j].bloqueado) {
 				cout << "X" << endl;
 				//cout << i << j << endl;
-				//Display(" ", bordaX + j, 11 + i, false, 119);
+				Display(" ", bordaX + j, 11 + i, false, 119);
 			}
 			Display("|", bordaX - 1, 11 + i, false);
 			Display("|", bordaX + j + 1, 11 + i, false);
