@@ -1,8 +1,7 @@
 // CyberpunkPlusPlus.cpp : define o ponto de entrada para o aplicativo do console.
 //
 
-#include "stdafx.h"
-
+//#include "stdafx.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -54,6 +53,12 @@ struct Fase
 };
 
 // Funções //
+
+int RNG(int min = 0, int max = 1){
+	int num = 0;
+	num = rand() % max + min;
+	return num;
+}
 
 int VerificarOpcao(int valor = 0, int min = 0, int max = 0) {
 	if (valor >= min || valor <= max) {
@@ -171,7 +176,7 @@ void Carregar_Tutorial() {
 
 	Display("Use as teclas WASD para se movimentar pelo mapa", 50, 23, false, 7, false, true);
 	Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, false, 7, false, true);
-	Sleep(2000);
+	Sleep(1000);
 	Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
 }
 
@@ -186,21 +191,26 @@ Mapa CriarMapa(int A, int L) {
 	    mapa.blocos[i] = new Bloco[L];
 	}
 
-	mapa.blocos[1][0].bloqueado = true;
 	return mapa;
 }
 
-Fase CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa, int larguraMapa) {
-	Fase fase;
-	fase.nome = nome;
-	fase.mapa = CriarMapa(alturaMapa, larguraMapa);
+Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa, int larguraMapa) {
+	Fase* fase = new Fase;
+	fase->nome = nome;
+	fase->mapa = CriarMapa(alturaMapa, larguraMapa);
+
+
 	return fase;
 }
 
-void DisplayFase(Fase* fase, int A = 10, int L = 20) {
+void DisplayFase(Fase* fase) {
 	LimparTela();
+	int A = fase->mapa.A;
+	int L = fase->mapa.L;
 	string borda = "@";
-	int bordaX = 50 - L;
+	int bordaX = 50 - L/2;
+	if (bordaX%2 != 0)
+		bordaX++;
 
 	for (int i = 0; i < L; i++) {
 		borda = borda + "-";
@@ -212,17 +222,19 @@ void DisplayFase(Fase* fase, int A = 10, int L = 20) {
 		for (int j = 0; j < L; j++) {
 
 			Display(" ", bordaX + j, 11 + i, false, 38);
+			
 
-			if (fase->mapa.blocos[i][j].bloqueado) {
-				cout << "X" << endl;
-				//cout << i << j << endl;
+			if (fase->mapa.blocos[i][j].bloqueado == true) {
 				Display(" ", bordaX + j, 11 + i, false, 119);
 			}
+
 			Display("|", bordaX - 1, 11 + i, false);
 			Display("|", bordaX + j + 1, 11 + i, false);
+			Sleep(1);
 		}
 	}
 	Display(borda, bordaX - 1, 11 + A, false);
+
 }
 
 template <typename T>
@@ -249,18 +261,11 @@ int main()
 
 	LimparTela();
 
-	Display("Criando Fase..", 50, 5, false, 10, true, true);
-	//Fase* fase = GerarFase<10,10>();
-	Fase* fase = &CriarFase(10, NULL, "Night City", 10, 10);
+	Fase* fase = CriarFase(10, NULL, "Night City", 10, 30);
+	LimparTela();
 	DisplayFase(fase);
-	cout << endl;
-	
-	
-	/*for (int i = 0; i < 10; i++) { // Leitura de memória
-		for (int j = 0; j < 10; j++) {
-			cout << "Endereço " << i << "X" << j << ": " << &fase->mapa->blocos[i][j] << endl;
-		}
-	}*/
+
+	Display(fase->nome, 50, 1, false, 10, false, true);
 	LimparInputBuffer();
 	EsperarInput();
 	/*Arma aI = {1, 5};
