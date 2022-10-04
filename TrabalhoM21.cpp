@@ -26,7 +26,7 @@ struct Jogador
 	int nivel = 0;
 	int vida = 100;
 	Arma* arma;
-	int posicao[2];
+	int posicao[2] = {-1, -1};
 };
 
 struct Inimigo
@@ -53,9 +53,26 @@ struct Fase
 	string nome;
 	Mapa mapa;
 	Inimigo inimigos[5];
+	bool ganhou = false;
+	int bordaX;
 };
 
 // Funções //
+
+COORD GetConsoleCursorPosition(HANDLE hConsoleOutput)
+{
+    CONSOLE_SCREEN_BUFFER_INFO cbsi;
+    if (GetConsoleScreenBufferInfo(hConsoleOutput, &cbsi))
+    {
+        return cbsi.dwCursorPosition;
+    }
+    else
+    {
+        // The function failed. Call GetLastError() for details.
+        COORD invalid = { 0, 0 };
+        return invalid;
+    }
+}
 
 Arma* GerarArmas(){
 	Arma* armas = new Arma[10];
@@ -76,9 +93,9 @@ Jogador* GerarJogador(Arma* arma){
 	return jogador;
 }
 
-int RNG(int min = 0, int max = 1){
+int RNG(int offset = 0, int max = 1){
 	int num = 0;
-	num = rand() % max + min;
+	num = rand() % max + offset;
 	return num;
 }
 
@@ -251,7 +268,6 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	}
 	
 	for (int i = 0; i < quantObstaculos;){ // For loop sem incremento automatico
-		Sleep(500);
 		int localEscolhido[2] = {RNG(0, alturaMapa), RNG(0, larguraMapa)};
 		if (VerificarCord(fase, 0, localEscolhido)){ // Espaço existe?
 			if (VerificarCord(fase, 1, localEscolhido) == false){ // Espaço está livre?
@@ -260,10 +276,12 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 			}
 		}
 	}
+
+	Display("Gerando inimigos", 50, 13, false, 10, false, true);
 	return fase;
 }
 
-void DisplayFase(Fase* fase) {
+void DisplayFase(Fase* fase, Jogador* jogador) {
 	LimparTela();
 	int A = fase->mapa.A;
 	int L = fase->mapa.L;
@@ -271,6 +289,7 @@ void DisplayFase(Fase* fase) {
 	int bordaX = 50 - L/2;
 	if (bordaX%2 != 0)
 		bordaX++;
+	fase->bordaX = bordaX;
 
 	for (int i = 0; i < L; i++) {
 		borda = borda + "-";
@@ -288,6 +307,10 @@ void DisplayFase(Fase* fase) {
 				Display(" ", bordaX + j, 11 + i, false, 119);
 			}
 
+			if (jogador->posicao[0] == i && jogador->posicao[1] == j){
+				Display("*", bordaX + j, 11 + i, false);
+			}
+
 			Display("|", bordaX - 1, 11 + i, false);
 			Display("|", bordaX + j + 1, 11 + i, false);
 			Sleep(1);
@@ -295,6 +318,48 @@ void DisplayFase(Fase* fase) {
 	}
 	Display(borda, bordaX - 1, 11 + A, false);
 
+}
+
+void Movimentar(Jogador* jogador, Fase* fase){
+	while (jogador->vida > 0 && fase->ganhou == false)
+	{
+		int moveDelta[2] = {0};
+		for (int i = 0; i < 4; i++){
+			char tecla = _getch();
+			if (tecla == 'W' || tecla == 'w'){
+				moveDelta[0] += 1;
+			}
+			if (tecla == 'S' || tecla == 's'){
+				moveDelta[0] -= 1;
+			}
+			if (tecla == 'D' || tecla == 'd'){
+				moveDelta[1] += 1;
+			}
+			if (tecla == 'A' || tecla == 'a'){
+				moveDelta[1] -= 1;
+			}
+		}
+		
+		if (moveDelta[0] != 0 || moveDelta[1] != 0){
+			int novaPosicao[2];
+			novaPosicao[0] = jogador->posicao[0] + moveDelta[0];
+			novaPosicao[1] = jogador->posicao[1] + moveDelta[1];
+
+			if (VerificarCord(fase, 0, novaPosicao)){ // Espaço existe?
+				if (VerificarCord(fase, 1, novaPosicao) == false){ // Espaço está livre?
+					Display(" ", 11 + jogador->posicao[1], fase->bordaX + jogador->posicao[0], false, 38);
+					jogador->posicao[0] = novaPosicao[0];
+					jogador->posicao[1] = novaPosicao[1];
+					Display("*", 11 + novaPosicao[1], fase->bordaX  + novaPosicao[0]);
+				} else {
+					cout << novaPosicao[1] << "X" << novaPosicao[0] << " bloqueada!" << endl;
+				}
+			} else {
+					cout << novaPosicao[1] << "X" << novaPosicao[0] << " out of bounds!" << endl;
+			}
+		}
+		Sleep(200);
+	}
 }
 
 template <typename T>
@@ -311,7 +376,18 @@ int main()
 	setlocale(LC_ALL, "Portuguese");
 	srand(time(NULL));
 
+	// DADOS DO JOGO, GERADO APENAS UMA VEZ
 	Arma* armas = GerarArmas();
+	string nomeFases[3] = {"Bairro 1", "Bairro 2", "Torre Arasaka"};
+	int alturaFases[3] = {10,5,15};
+	int larguraFases[3] = {20,30,40};
+	int quantidadeInimigos[3] = {RNG(1, 5), RNG(1, 5), RNG(1, 5)};
+	Inimigo** inimigos_Matriz = new Inimigo*[3];
+
+	for (int i = 0; i < 3; i++){
+		inimigos_Matriz[i] = new Inimigo[3];
+	}
+	////////////////////
 
 	Carregar_Menu();
 	EsperarInput();
@@ -321,17 +397,30 @@ int main()
 	LimparInputBuffer();
 	EsperarInput();
 
-	LimparTela();
-	Display("Criando fase", 50, 10, false, 10, false, true);
-	Fase* fase = CriarFase(10, NULL, "Night City", 10, 30);
-	LimparTela();
-	DisplayFase(fase);
+	for (int levelId = 0; levelId < 3; levelId++){
+		LimparTela();
+		Display("Criando " + nomeFases[levelId], 50, 10, false, 10, false, true);
+		Fase* fase = CriarFase(10, NULL, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
+		
+		Display("Gerando jogador", 50, 14, false, 10, false, true);
+		Jogador* player = GerarJogador(&armas[0]);
 
-	Display(fase->nome, 50, 1, false, 10, false, true);
-
-	Jogador* player = GerarJogador(&armas[0]);
-	LimparInputBuffer();
-	EsperarInput();
+		while (player->posicao[0] == -1){
+			int localEscolhido[2] = {RNG(0, fase->mapa.A), RNG(0, fase->mapa.L)};
+			if (VerificarCord(fase, 0, localEscolhido)){ // Espaço existe?
+				if (VerificarCord(fase, 1, localEscolhido) == false){ // Espaço está livre?
+					player->posicao[0] = localEscolhido[0]; // Posicionar Y
+					player->posicao[1] = localEscolhido[1]; // Posicionar X
+				}
+			}
+		}
+		LimparTela();
+		DisplayFase(fase, player);
+		Display(fase->nome, 50, 1, false, 10, false, true);
+		Display(to_string(player->vida), 50, 2, false, 10, false, true);
+		LimparInputBuffer();
+		Movimentar(player, fase);
+	}
 	/*Arma aI = {1, 5};
 	Arma aJ = {4, 10};
 
