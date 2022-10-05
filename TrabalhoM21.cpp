@@ -11,14 +11,27 @@
 #include <locale.h>
 using namespace std;
 
+// Palheta de cores //
+int corChao = 136;
+int corObstaculo = 85;
+int corJogador = 139;
+int corInimigo = 140;
+
 // Structs // 
 struct Arma
 {
 	string nome;
 	string descricaoAttk = "atacou";
 	string killMsg = "matou";
-	int dano_minimo = 1;
-	int dano_maximo = 1;
+	int dano_minimo = 5;
+	int dano_maximo = 10;
+	int stats[10] = {0};
+	/* O que é cada stat:
+	0 - Destreza bonus (decide quem ataca primeiro)
+	1 - Chance bonus de critico (maior offset no RNG do atacante)
+	2 - Chance bonus de dodge (menor offset no RNG do defensor)
+	3 - Quantidade maxima de ataques por turno (exemplo: miniguns)
+	*/
 };
 
 struct Jogador
@@ -27,6 +40,7 @@ struct Jogador
 	int vida = 100;
 	Arma* arma;
 	int posicao[2] = {-1, -1};
+	COORD posicaoTela;
 };
 
 struct Inimigo
@@ -54,36 +68,101 @@ struct Fase
 	Mapa mapa;
 	Inimigo inimigos[5];
 	bool ganhou = false;
-	int bordaX;
 };
 
 // Funções //
 
-COORD GetConsoleCursorPosition(HANDLE hConsoleOutput)
+COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isPlayer = false)
 {
-    CONSOLE_SCREEN_BUFFER_INFO cbsi;
-    if (GetConsoleScreenBufferInfo(hConsoleOutput, &cbsi))
+    CONSOLE_SCREEN_BUFFER_INFO consoleBuffer;
+    if (GetConsoleScreenBufferInfo(hConsoleOutput, &consoleBuffer))
     {
-        return cbsi.dwCursorPosition;
+		COORD cursorCoords = consoleBuffer.dwCursorPosition;
+		if (isPlayer){
+			cursorCoords.X -= 1;
+		}
+        return cursorCoords;
     }
     else
     {
-        // The function failed. Call GetLastError() for details.
-        COORD invalid = { 0, 0 };
-        return invalid;
+        return {0,0};
     }
 }
 
 Arma* GerarArmas(){
-	Arma* armas = new Arma[10];
+	Arma* armas = new Arma[7];
 	armas[0].nome = "Punhos";
 	armas[0].descricaoAttk = " deu um soco em ";
-	armas[0].killMsg = "saiu na pancadaria e venceu de";
+	armas[0].killMsg = " saiu na pancadaria e venceu de ";
+	armas[0].dano_minimo = 3;
+	armas[0].dano_maximo = 7;
+	armas[0].stats[0] = 2; // Destreza
+	armas[0].stats[1] = 1; // Crit
+	armas[0].stats[2] = 3; // Dodge
+	armas[0].stats[3] = 0; // Multi-Shot
 
-	armas[1].nome = "Mantis Blade";
-	armas[1].descricaoAttk = " deu um corte em ";
-	armas[1].killMsg = " desconectou a cabeca de ";
+	armas[1].nome = "Gorilla Arms";
+	armas[1].descricaoAttk = " deu um socao em ";
+	armas[1].killMsg = " quebrou a mandibula de ";
+	armas[1].dano_minimo = 3;
+	armas[1].dano_maximo = 7;
+	armas[1].stats[0] = 0; // Destreza
+	armas[1].stats[1] = 3; // Crit
+	armas[1].stats[2] = -2; // Dodge
+	armas[1].stats[3] = 0; // Multi-Shot
+
+	armas[2].nome = "Mantis Blade";
+	armas[2].descricaoAttk = " deu um corte em ";
+	armas[2].killMsg = " desconectou a cabeca de ";
+	armas[2].dano_minimo = 6;
+	armas[2].dano_maximo = 12;
+	armas[2].stats[0] = 2; // Destreza
+	armas[2].stats[1] = 4; // Crit
+	armas[2].stats[2] = 3; // Dodge
+	armas[2].stats[3] = 2; // Multi-Shot
+
+	armas[3].nome = "Rifle de assalto";
+	armas[3].descricaoAttk = " atirou em ";
+	armas[3].killMsg = " fuzilou ";
+	armas[3].dano_minimo = 10;
+	armas[3].dano_maximo = 15;
+	armas[3].stats[0] = 1; // Destreza
+	armas[3].stats[1] = 2; // Crit
+	armas[3].stats[2] = 1; // Dodge
+	armas[3].stats[3] = 4; // Multi-Shot
+
+	armas[4].nome = "Minigun";
+	armas[4].descricaoAttk = " atirou em ";
+	armas[4].killMsg = " aniquilou ";
+	armas[4].dano_minimo = 5;
+	armas[4].dano_maximo = 8;
+	armas[4].stats[0] = -1; // Destreza
+	armas[4].stats[1] = 2; // Crit
+	armas[4].stats[2] = -2; // Dodge
+	armas[4].stats[3] = 8; // Multi-Shot
+
+	armas[5].nome = "Pistola";
+	armas[5].descricaoAttk = " atirou em ";
+	armas[5].killMsg = " estorou o miolos de ";
+	armas[5].dano_minimo = 12;
+	armas[5].dano_maximo = 14;
+	armas[5].stats[0] = 2; // Destreza
+	armas[5].stats[1] = 2; // Crit
+	armas[5].stats[2] = 2; // Dodge
+	armas[5].stats[3] = 0; // Multi-Shot
+
+	armas[6].nome = "Revolver";
+	armas[6].descricaoAttk = " atirou em ";
+	armas[6].killMsg = " fez um que ota em ";
+	armas[6].dano_minimo = 5;
+	armas[6].dano_maximo = 20;
+	armas[6].stats[0] = 2; // Destreza
+	armas[6].stats[1] = 3; // Crit
+	armas[6].stats[2] = 2; // Dodge
+	armas[6].stats[3] = 0; // Multi-Shot
 	return armas;
+
+
 }
 
 Jogador* GerarJogador(Arma* arma){
@@ -208,14 +287,14 @@ void Carregar_Tutorial() {
 
 	Display("Tutorial Basico:", 30, 2, false, 7, false, true);
 
-	Display("*", 20, 4, false, 7);
+	Display("#", 20, 4, false, corJogador);
 	Display("<--- Jogador", 30, 4, false, 7, false, true);
-	Display("*", 20, 7, false, 4);
+	Display("#", 20, 7, false, corInimigo);
 	Display("<--- Inimigo", 30, 7, false, 7, false, true);
 
-	Display(" ", 20, 11, false, 38);
+	Display(" ", 20, 11, false, corChao);
 	Display("<--- Chao", 30, 11, false, 7, false, true);
-	Display(" ", 20, 14, false, 119);
+	Display(" ", 20, 14, false, corObstaculo);
 	Display("<--- Parede", 30, 14, false, 7, false, true);
 
 	Display("Use as teclas WASD para se movimentar pelo mapa", 50, 23, false, 7, false, true);
@@ -289,7 +368,6 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 	int bordaX = 50 - L/2;
 	if (bordaX%2 != 0)
 		bordaX++;
-	fase->bordaX = bordaX;
 
 	for (int i = 0; i < L; i++) {
 		borda = borda + "-";
@@ -300,20 +378,20 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 	for (int i = 0; i < A; i++) {
 		for (int j = 0; j < L; j++) {
 
-			Display(" ", bordaX + j, 11 + i, false, 38);
+			Display(" ", bordaX + j, 11 + i, false, corChao);
 			
 
 			if (fase->mapa.blocos[i][j].bloqueado == true) {
-				Display(" ", bordaX + j, 11 + i, false, 119);
+				Display(" ", bordaX + j, 11 + i, false, corObstaculo);
 			}
 
 			if (jogador->posicao[0] == i && jogador->posicao[1] == j){
-				Display("*", bordaX + j, 11 + i, false);
+				Display("#", bordaX + j, 11 + i, false, corJogador);
+				jogador->posicaoTela = ObterPosicaoCursor(GetStdHandle(STD_OUTPUT_HANDLE), true);
 			}
 
 			Display("|", bordaX - 1, 11 + i, false);
 			Display("|", bordaX + j + 1, 11 + i, false);
-			Sleep(1);
 		}
 	}
 	Display(borda, bordaX - 1, 11 + A, false);
@@ -324,41 +402,52 @@ void Movimentar(Jogador* jogador, Fase* fase){
 	while (jogador->vida > 0 && fase->ganhou == false)
 	{
 		int moveDelta[2] = {0};
+		bool debounce[4] = {false};
 		for (int i = 0; i < 4; i++){
-			char tecla = _getch();
-			if (tecla == 'W' || tecla == 'w'){
-				moveDelta[0] += 1;
-			}
-			if (tecla == 'S' || tecla == 's'){
-				moveDelta[0] -= 1;
-			}
-			if (tecla == 'D' || tecla == 'd'){
-				moveDelta[1] += 1;
-			}
-			if (tecla == 'A' || tecla == 'a'){
-				moveDelta[1] -= 1;
+			if (kbhit()){
+				char tecla = _getch();
+				if ((tecla == 'W' || tecla == 'w') && debounce[0] == false){
+					debounce[0] = true;
+					moveDelta[0] -= 1;
+				}
+
+				if ((tecla == 'S' || tecla == 's') && debounce[1] == false){
+					debounce[1] = true;
+					moveDelta[0] += 1;
+				}
+
+				if ((tecla == 'A' || tecla == 'a') && debounce[2] == false){
+					debounce[2] = true;
+					moveDelta[1] -= 1;
+				}
+
+				if ((tecla == 'D' || tecla == 'd') && debounce[3] == false){
+					debounce[3] = true;
+					moveDelta[1] += 1;
+				}
 			}
 		}
 		
 		if (moveDelta[0] != 0 || moveDelta[1] != 0){
-			int novaPosicao[2];
-			novaPosicao[0] = jogador->posicao[0] + moveDelta[0];
-			novaPosicao[1] = jogador->posicao[1] + moveDelta[1];
+			int novaPosicao[2] = {0};
+			novaPosicao[0] = jogador->posicao[0] + moveDelta[0]; // Y
+			novaPosicao[1] = jogador->posicao[1] + moveDelta[1]; // X
+
+			COORD novaPosicaoTela = {jogador->posicaoTela.X, jogador->posicaoTela.Y};
+			novaPosicaoTela.X += moveDelta[1];
+			novaPosicaoTela.Y += moveDelta[0];
 
 			if (VerificarCord(fase, 0, novaPosicao)){ // Espaço existe?
 				if (VerificarCord(fase, 1, novaPosicao) == false){ // Espaço está livre?
-					Display(" ", 11 + jogador->posicao[1], fase->bordaX + jogador->posicao[0], false, 38);
+					Display(" ", jogador->posicaoTela.X, jogador->posicaoTela.Y, false, corChao);
 					jogador->posicao[0] = novaPosicao[0];
 					jogador->posicao[1] = novaPosicao[1];
-					Display("*", 11 + novaPosicao[1], fase->bordaX  + novaPosicao[0]);
-				} else {
-					cout << novaPosicao[1] << "X" << novaPosicao[0] << " bloqueada!" << endl;
+					Display("#", novaPosicaoTela.X, novaPosicaoTela.Y, false, corJogador);
+					jogador->posicaoTela = novaPosicaoTela;
 				}
-			} else {
-					cout << novaPosicao[1] << "X" << novaPosicao[0] << " out of bounds!" << endl;
 			}
 		}
-		Sleep(200);
+		Sleep(50);
 	}
 }
 
