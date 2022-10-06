@@ -324,7 +324,7 @@ void LimparTela(int tipo = 0) {
 	case 1: // Limpa informações inferiores da tela de combate
 		Y = 23;
 		for (Y; Y < 30; Y++) {
-			Display("                                    ", 0, Y, false, 10);
+			Display("                                              ", 0, Y, false, 10);
 		}
 
 		Y = 23;
@@ -343,8 +343,9 @@ void LimparTela(int tipo = 0) {
 	case 3: // Limpa menu de escolhas de combate
 		Y = 23;
 		for (Y; Y < 30; Y++) {
-			Display("                                    ", 0, Y, false, 10);
+			Display("                                              ", 0, Y, false, 10);
 		}
+		break;
 
 	default:
 		LimparCores();  // Se der cls antes disso, a tela fica com a ultima cor usada
@@ -615,6 +616,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 		int escolhaAux = 0; // Variavel temporaria para decisões
 		if (jogador->stats[0] < 100) { // Livre escolha caso n tenha ciberpsicose
 			while (escolha <= 0) {
+				LimparTela(3);
 				if (escolha == -1) {
 					Display("Opcao invalida!", 1, 29, false, 4);
 				}
@@ -635,12 +637,15 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 						LimparTela(3);
 						Display("Escolha", 1, 23, false, 10);
 						Display("1 - Sandevistan (varias acoes no mesmo turno)", 1, 24, false, 10);
-						Display("2 - Implante Regenerativo (20% cura por 2 turnos)", 1, 25, false, 10);
+						Display("2 - Imp. Regenerativo (20% cura por 2 turnos)", 1, 25, false, 10);
 						Display("3 - Kiroshi Opctics (Precisao aumentada)", 1, 26, false, 10);
 						Display("4 - Voltar", 1, 27, false, 10);
 						Display("                                               ", 1, 28, false);
 						Display("Opcao Escolhida: ", 1, 28, false, 10, true);
-						cin >> escolha;
+						cin >> escolhaAux;
+						if (VerificarOpcao(escolhaAux, 1, 3)) {
+							escolha = 10 + escolhaAux;
+						}
 					}
 				}
 				else {
