@@ -48,12 +48,13 @@ struct Inimigo
 	string nome;
 	int vida = 100;
 	Arma arma;
+	string spriteFile = "";
 };
 
 struct Bloco
 {
 	bool bloqueado = false;
-	Inimigo *inimigo;
+	Inimigo *inimigo = NULL;
 };
 
 struct Mapa {
@@ -87,6 +88,12 @@ COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isPlayer = false)
     {
         return {0,0};
     }
+}
+
+int RNG(int offset = 0, int max = 1){
+	int num = 0;
+	num = rand() % max + offset;
+	return num;
 }
 
 Arma* GerarArmas(){
@@ -161,8 +168,6 @@ Arma* GerarArmas(){
 	armas[6].stats[2] = 2; // Dodge
 	armas[6].stats[3] = 0; // Multi-Shot
 	return armas;
-
-
 }
 
 Jogador* GerarJogador(Arma* arma){
@@ -172,10 +177,40 @@ Jogador* GerarJogador(Arma* arma){
 	return jogador;
 }
 
-int RNG(int offset = 0, int max = 1){
-	int num = 0;
-	num = rand() % max + offset;
-	return num;
+Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 1){
+	Inimigo* inimigos = new Inimigo[3];
+	switch (levelId)
+	{
+	case 1:
+		inimigos[0].nome = "Valentino";
+		inimigos[0].vida = 30;
+		inimigos[0].arma = listaArmas[RNG(0,2)]; // Items 0-1
+		inimigos[0].spriteFile = "Valentino_0";
+
+		inimigos[1].nome = "Valentino";
+		inimigos[1].vida = 25;
+		inimigos[1].arma = listaArmas[3]; // Rifle de assalto
+
+		inimigos[2].nome = "Valentino";
+		inimigos[2].vida = 20;
+		inimigos[2].arma = listaArmas[RNG(5,2)]; // Items 5-6
+		break;
+	}
+	return inimigos;
+}
+
+Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3){
+	Inimigo* inimigos = new Inimigo[numInimigos];
+
+	for (int i = 0; i < numInimigos; i++){
+		int indexEscolhido = RNG(0, 3);
+		Inimigo inimigoEscolhido = inimigosPreset[indexEscolhido];
+		inimigos[i].nome = inimigoEscolhido.nome;
+		inimigos[i].vida = inimigoEscolhido.vida;
+		inimigos[i].arma = inimigoEscolhido.arma;
+	}
+
+	return inimigos;
 }
 
 int VerificarOpcao(int valor = 0, int min = 0, int max = 0) {
@@ -303,7 +338,7 @@ void Carregar_Tutorial() {
 	Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
 }
 
-bool VerificarCord(Fase* fase, int tipo, int coords[2] = {0}){
+bool VerificarCoord(Fase* fase, int tipo, int coords[2] = {0}){
 	switch (tipo)
 	{
 	case 0: // Verificação por existência do bloco na grade (Y e X)
@@ -314,6 +349,15 @@ bool VerificarCord(Fase* fase, int tipo, int coords[2] = {0}){
 	
 	case 1: // Verificação por espaço bloqueado
 		return fase->mapa.blocos[coords[0]][coords[1]].bloqueado;
+		break;
+
+	case 2: // Verificação por inimigo
+		if (fase->mapa.blocos[coords[0]][coords[1]].inimigo != NULL){
+			return true;
+		} else{
+			return false;
+		}
+		break;
 
 	default:
 		break;
@@ -348,8 +392,8 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	
 	for (int i = 0; i < quantObstaculos;){ // For loop sem incremento automatico
 		int localEscolhido[2] = {RNG(0, alturaMapa), RNG(0, larguraMapa)};
-		if (VerificarCord(fase, 0, localEscolhido)){ // Espaço existe?
-			if (VerificarCord(fase, 1, localEscolhido) == false){ // Espaço está livre?
+		if (VerificarCoord(fase, 0, localEscolhido)){ // Espaço existe?
+			if (VerificarCoord(fase, 1, localEscolhido) == false){ // Espaço está livre?
 				fase->mapa.blocos[localEscolhido[0]][localEscolhido[1]].bloqueado = true;
 				i++;
 			}
@@ -357,6 +401,17 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	}
 
 	Display("Gerando inimigos", 50, 13, false, 10, false, true);
+	for (int i = 0; i < numInimigos;){ // For loop sem incremento automatico
+		int coordEscolhida[2] = {RNG(0, fase->mapa.A), RNG(0, fase->mapa.L)};
+
+		if (VerificarCoord(fase, 0, coordEscolhida)){ // Espaço existe?
+			if (VerificarCoord(fase, 1, coordEscolhida) == false && VerificarCoord(fase, 2, coordEscolhida) == false){
+				// Bloco livre, sem inimigos também
+				fase->mapa.blocos[coordEscolhida[0]][coordEscolhida[1]].inimigo = &inimigos[i];
+				i++;
+			}
+		}
+	}
 	return fase;
 }
 
@@ -385,6 +440,10 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 				Display(" ", bordaX + j, 11 + i, false, corObstaculo);
 			}
 
+			if (fase->mapa.blocos[i][j].inimigo != NULL){
+				Display("#", bordaX + j, 11 + i, false, corInimigo);
+			}
+
 			if (jogador->posicao[0] == i && jogador->posicao[1] == j){
 				Display("#", bordaX + j, 11 + i, false, corJogador);
 				jogador->posicaoTela = ObterPosicaoCursor(GetStdHandle(STD_OUTPUT_HANDLE), true);
@@ -395,60 +454,58 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 		}
 	}
 	Display(borda, bordaX - 1, 11 + A, false);
-
+	Display(fase->nome, 50, 1, false, 10, false, true);
+	Display(to_string(jogador->vida), 50, 2, false, 10, false, true);
 }
 
 void Movimentar(Jogador* jogador, Fase* fase){
-	while (jogador->vida > 0 && fase->ganhou == false)
-	{
-		int moveDelta[2] = {0};
-		bool debounce[4] = {false};
+	int moveDelta[2] = {0};
+	bool debounce[4] = {false};
 		for (int i = 0; i < 4; i++){
-			if (kbhit()){
-				char tecla = _getch();
-				if ((tecla == 'W' || tecla == 'w') && debounce[0] == false){
-					debounce[0] = true;
-					moveDelta[0] -= 1;
-				}
+		if (kbhit()){
+			char tecla = _getch();
+			if ((tecla == 'W' || tecla == 'w') && debounce[0] == false){
+				debounce[0] = true;
+				moveDelta[0] -= 1;
+			}
 
-				if ((tecla == 'S' || tecla == 's') && debounce[1] == false){
-					debounce[1] = true;
-					moveDelta[0] += 1;
-				}
+			if ((tecla == 'S' || tecla == 's') && debounce[1] == false){
+				debounce[1] = true;
+				moveDelta[0] += 1;
+			}
 
-				if ((tecla == 'A' || tecla == 'a') && debounce[2] == false){
-					debounce[2] = true;
-					moveDelta[1] -= 1;
-				}
+			if ((tecla == 'A' || tecla == 'a') && debounce[2] == false){
+				debounce[2] = true;
+				moveDelta[1] -= 1;
+			}
 
-				if ((tecla == 'D' || tecla == 'd') && debounce[3] == false){
-					debounce[3] = true;
-					moveDelta[1] += 1;
-				}
+			if ((tecla == 'D' || tecla == 'd') && debounce[3] == false){
+				debounce[3] = true;
+				moveDelta[1] += 1;
 			}
 		}
-		
-		if (moveDelta[0] != 0 || moveDelta[1] != 0){
-			int novaPosicao[2] = {0};
-			novaPosicao[0] = jogador->posicao[0] + moveDelta[0]; // Y
-			novaPosicao[1] = jogador->posicao[1] + moveDelta[1]; // X
-
-			COORD novaPosicaoTela = {jogador->posicaoTela.X, jogador->posicaoTela.Y};
-			novaPosicaoTela.X += moveDelta[1];
-			novaPosicaoTela.Y += moveDelta[0];
-
-			if (VerificarCord(fase, 0, novaPosicao)){ // Espaço existe?
-				if (VerificarCord(fase, 1, novaPosicao) == false){ // Espaço está livre?
-					Display(" ", jogador->posicaoTela.X, jogador->posicaoTela.Y, false, corChao);
-					jogador->posicao[0] = novaPosicao[0];
-					jogador->posicao[1] = novaPosicao[1];
-					Display("#", novaPosicaoTela.X, novaPosicaoTela.Y, false, corJogador);
-					jogador->posicaoTela = novaPosicaoTela;
-				}
-			}
-		}
-		Sleep(50);
 	}
+		
+	if (moveDelta[0] != 0 || moveDelta[1] != 0){
+		int novaPosicao[2] = {0};
+		novaPosicao[0] = jogador->posicao[0] + moveDelta[0]; // Y
+		novaPosicao[1] = jogador->posicao[1] + moveDelta[1]; // X
+
+		COORD novaPosicaoTela = {jogador->posicaoTela.X, jogador->posicaoTela.Y};
+		novaPosicaoTela.X += moveDelta[1];
+		novaPosicaoTela.Y += moveDelta[0];
+
+		if (VerificarCoord(fase, 0, novaPosicao)){ // Espaço existe?
+			if (VerificarCoord(fase, 1, novaPosicao) == false){ // Espaço está livre?
+				Display(" ", jogador->posicaoTela.X, jogador->posicaoTela.Y, false, corChao);
+				jogador->posicao[0] = novaPosicao[0];
+				jogador->posicao[1] = novaPosicao[1];
+				Display("#", novaPosicaoTela.X, novaPosicaoTela.Y, false, corJogador);
+				jogador->posicaoTela = novaPosicaoTela;
+			}
+		}
+	}
+	Sleep(50);
 }
 
 template <typename T>
@@ -457,7 +514,7 @@ bool morreu(T personagem);
 template <typename Tata, typename Tdef>
 Tdef ataque(Tata atacante, Tdef defensor);
 
-void jogar_fase(Jogador jog, Fase fase);
+void jogarFase(Jogador* jogador, Fase* fase);
 
 
 int main()
@@ -489,15 +546,19 @@ int main()
 	for (int levelId = 0; levelId < 3; levelId++){
 		LimparTela();
 		Display("Criando " + nomeFases[levelId], 50, 10, false, 10, false, true);
-		Fase* fase = CriarFase(10, NULL, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
+		int numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
+		Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
+		Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
+		Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
 		
 		Display("Gerando jogador", 50, 14, false, 10, false, true);
 		Jogador* player = GerarJogador(&armas[0]);
 
 		while (player->posicao[0] == -1){
 			int localEscolhido[2] = {RNG(0, fase->mapa.A), RNG(0, fase->mapa.L)};
-			if (VerificarCord(fase, 0, localEscolhido)){ // Espaço existe?
-				if (VerificarCord(fase, 1, localEscolhido) == false){ // Espaço está livre?
+			if (VerificarCoord(fase, 0, localEscolhido)){ // Espaço existe?
+				if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false){
+					// Espaço livre, sem inimigos
 					player->posicao[0] = localEscolhido[0]; // Posicionar Y
 					player->posicao[1] = localEscolhido[1]; // Posicionar X
 				}
@@ -505,10 +566,8 @@ int main()
 		}
 		LimparTela();
 		DisplayFase(fase, player);
-		Display(fase->nome, 50, 1, false, 10, false, true);
-		Display(to_string(player->vida), 50, 2, false, 10, false, true);
 		LimparInputBuffer();
-		Movimentar(player, fase);
+		jogarFase(player, fase);
 	}
 	/*Arma aI = {1, 5};
 	Arma aJ = {4, 10};
@@ -555,33 +614,20 @@ Tdef ataque(Tata atacante, Tdef defensor)
 	defensor.vida = defensor.vida - dano;
 
 	return defensor;
-}
+}*/
 
-void jogar_fase(Jogador jog, Fase fase)
+void jogarFase(Jogador* jogador, Fase* fase)
 {
-	cout << "Começou " << fase.nome << endl
-		<< endl;
-
-	for (int atual = 0; atual < 5; atual++)
+	while (jogador->vida > 0 && fase->ganhou == false)
 	{
-		while (!morreu(fase.inimigos[atual]))
-		{
-			jog = ataque(fase.inimigos[atual], jog);
-			fase.inimigos[atual] = ataque(jog, fase.inimigos[atual]);
-
-			cout << "O jogador atacou " << fase.inimigos[atual].nome << " e ele ficou com " << fase.inimigos[atual].vida << " de vida" << endl;
-			cout << "O " << fase.inimigos[atual].nome << "atacou o jogador ao mesmo tempo e o deixou com " << jog.vida << " de vida" << endl;
-
-			if (morreu(jog))
-			{
-				cout << "O jogador morreu, o jogo acabou" << endl;
-				return;
-			}
+		Movimentar(jogador, fase);
+		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo != NULL){
+			// Inimigo encontrado, iniciar combate
+			LimparTela();
+			DisplayAnimation("Frames/CombatInitiation/", "Combat_", 12, 7, 10, 2, 10);
+			LimparTela();
+			int a = 0;
+			cin >> a;
 		}
-
-		cout << fase.inimigos[atual].nome << " foi morto" << endl << endl;
 	}
-
-	cout << "O jogador passou a fase";
 }
-*/
