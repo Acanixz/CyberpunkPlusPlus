@@ -41,14 +41,27 @@ struct Jogador
 	Arma* arma;
 	int posicao[2] = {-1, -1};
 	COORD posicaoTela;
+	int stats[5] = {0};
+	/* Stats do jogador:
+	0 - Sobrecarga, uma contagem de 0 a 100, aumenta a cada uso de implante
+	Obs: se chegar a 100, a quant. de inimigos nas proximas fases dobra e 
+	você perde o controle do personagem no combate até o fim do jogo,
+	além de os usos de implantes nesse estado causam dano ao jogador
+
+	1 - Destreza (decide quem ataca primeiro)
+	2 - Bonus Sandevistan (quantidade de ações extras no mesmo turno)
+	3 - Bonus Implante curativo (cura 20% da vida maxima por turno)
+	4 - Bonus Kiroshi Optic (próximo ataque tem +50% de chance de acertar)
+	*/
 };
 
 struct Inimigo
 {
-	string nome;
+	string nome = "Inimigo sem nome";
 	int vida = 100;
 	Arma arma;
-	string spriteFile = "";
+	string spriteFile = "Placeholder.txt";
+	int spriteColor = 7;
 };
 
 struct Bloco
@@ -73,13 +86,13 @@ struct Fase
 
 // Funções //
 
-COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isPlayer = false)
+COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false)
 {
     CONSOLE_SCREEN_BUFFER_INFO consoleBuffer;
     if (GetConsoleScreenBufferInfo(hConsoleOutput, &consoleBuffer))
     {
 		COORD cursorCoords = consoleBuffer.dwCursorPosition;
-		if (isPlayer){
+		if (isjogador){
 			cursorCoords.X -= 1;
 		}
         return cursorCoords;
@@ -173,27 +186,33 @@ Arma* GerarArmas(){
 Jogador* GerarJogador(Arma* arma){
 	Jogador* jogador = new Jogador;
 	jogador->arma = arma;
-
+	//jogador->stats[1] = 1;
+	//jogador->stats[2] = 1;
+	//jogador->stats[3] = 1;
+	//jogador->stats[4] = 1;
+	//jogador->stats[0] = 100;
 	return jogador;
 }
 
-Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 1){
+Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0){
 	Inimigo* inimigos = new Inimigo[3];
 	switch (levelId)
 	{
-	case 1:
+	case 0:
 		inimigos[0].nome = "Valentino";
 		inimigos[0].vida = 30;
 		inimigos[0].arma = listaArmas[RNG(0,2)]; // Items 0-1
-		inimigos[0].spriteFile = "Valentino_0";
+		//inimigos[0].spriteFile = "Valentino_0.txt";
 
 		inimigos[1].nome = "Valentino";
 		inimigos[1].vida = 25;
 		inimigos[1].arma = listaArmas[3]; // Rifle de assalto
+		//inimigos[1].spriteFile = "Valentino_0.txt";
 
 		inimigos[2].nome = "Valentino";
 		inimigos[2].vida = 20;
 		inimigos[2].arma = listaArmas[RNG(5,2)]; // Items 5-6
+		//inimigos[2].spriteFile = "Valentino_0.txt";
 		break;
 	}
 	return inimigos;
@@ -213,11 +232,11 @@ Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3){
 	return inimigos;
 }
 
-int VerificarOpcao(int valor = 0, int min = 0, int max = 0) {
-	if (valor >= min || valor <= max) {
-		return valor;
+bool VerificarOpcao(int valor = 0, int min = 0, int max = 0) {
+	if (valor >= min && valor <= max) {
+		return true;
 	}
-	return -1;
+	return false;
 }
 
 void LimparInputBuffer() {
@@ -516,6 +535,89 @@ Tdef ataque(Tata atacante, Tdef defensor);
 
 void jogarFase(Jogador* jogador, Fase* fase);
 
+void iniciarCombate(Jogador* jogador, Inimigo* inimigo){
+	DisplayAnimation("Frames/Enemies/", inimigo->spriteFile, -1, inimigo->spriteColor, 0, 0);
+	// LOG DE COMBATE
+	Display("LOG DE COMBATE:", 100, 0, false, 10, false, true);
+	Display("Voce encontrou " + inimigo->nome, 100, 1, false, 10, false, true);
+	int logY = 2;
+
+	while (morreu(jogador) == false && morreu(inimigo) == false){
+		// DISPLAY DE INFORMAÇÕES DO PERSONAGEM
+		Display("Relatorio de integridade:", 50, 23, false, 10);
+		Display("Vida: " + to_string(jogador->vida) + "    ", 50, 24, false, 10);
+
+		if (jogador->stats[0] >= 50){ // Sobrecarga
+			if (jogador->stats[0] >= 75){
+				if (jogador->stats[0] >= 100){
+					Display("Sobrecarga: ERRO (CIBERPSICOSE DETECTADA)", 50, 25, false, 4);
+				} else {
+					Display("Sobrecarga: " + to_string(jogador->stats[0]) + "% (PERIGO)", 50, 25, false, 4);
+				}
+				
+			} else{
+				Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 25, false, 14);
+			}
+		} else {
+			Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%         ", 50, 25, false, 10);
+		}
+		
+		if (jogador->stats[2] > 0){ // Sandevistan status
+			Display("Sandevistan ativo!", 50, 26, false, 10);
+		} else {
+			Display("                  ", 50, 26, false);
+		}
+
+		if (jogador->stats[3] > 0){ // Imp. Curativo status
+			Display("Regeneracao em progresso..", 50, 27, false, 10);
+		} else {
+			Display("                          ", 50, 27, false);
+		}
+
+		if (jogador->stats[4] > 0){ // Kiroshi Optic status
+			Display("Assistencia de mira em uso!", 50, 28, false, 10);
+		} else {
+			Display("                           ", 50, 28, false);
+		}
+		
+		int escolha = 0;
+		int escolhaAux = 0; // Variavel temporaria para decisões
+		if (jogador->stats[0] < 100){ // Livre escolha caso n tenha ciberpsicose
+			while (escolha <= 0){
+				if (escolha == -1){
+					Display("Opcao invalida!", 1, 29, false, 4);
+				} else {
+					Display("               ", 1, 29, false);
+				}
+				Display("O que fazer?", 1, 23, false, 10);
+				Display("1 - Atacar", 1, 24, false, 10);
+				Display("2 - Esquivar", 1, 25, false, 10);
+				Display("3 - Usar Implante", 1, 26, false, 10);
+				Display("                                               ", 1, 28, false);
+				Display("Opcao Escolhida: ", 1, 28, false, 10, true);
+				cin >> escolhaAux;
+				if (VerificarOpcao(escolhaAux, 1, 3)){
+					if (VerificarOpcao(escolhaAux, 1, 2)){ // Escolhas primarias
+						escolha = escolhaAux;
+						
+					} else { // Abrir menu de implantes
+						Display("Escolha", 1, 23, false, 10);
+						Display("1 - Sandevistan ()", 1, 24, false, 10); // TO-DO
+						Display("2 - Esquivar", 1, 25, false, 10);
+						Display("3 - Usar Implante", 1, 26, false, 10);
+						Display("                                               ", 1, 28, false);
+						Display("Opcao Escolhida: ", 1, 28, false, 10, true);
+					}
+				} else {
+					escolha = -1;
+				}
+			}
+			
+		} else {
+
+		}
+	}
+}
 
 int main()
 {
@@ -552,49 +654,29 @@ int main()
 		Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
 		
 		Display("Gerando jogador", 50, 14, false, 10, false, true);
-		Jogador* player = GerarJogador(&armas[0]);
+		Jogador* jogador = GerarJogador(&armas[0]);
 
-		while (player->posicao[0] == -1){
+		while (jogador->posicao[0] == -1){
 			int localEscolhido[2] = {RNG(0, fase->mapa.A), RNG(0, fase->mapa.L)};
 			if (VerificarCoord(fase, 0, localEscolhido)){ // Espaço existe?
 				if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false){
 					// Espaço livre, sem inimigos
-					player->posicao[0] = localEscolhido[0]; // Posicionar Y
-					player->posicao[1] = localEscolhido[1]; // Posicionar X
+					jogador->posicao[0] = localEscolhido[0]; // Posicionar Y
+					jogador->posicao[1] = localEscolhido[1]; // Posicionar X
 				}
 			}
 		}
 		LimparTela();
-		DisplayFase(fase, player);
+		DisplayFase(fase, jogador);
 		LimparInputBuffer();
-		jogarFase(player, fase);
+		jogarFase(jogador, fase);
 	}
-	/*Arma aI = {1, 5};
-	Arma aJ = {4, 10};
-
-	Inimigo goblin1 = {"Goblin", 20, aI};
-	Inimigo goblin2 = {"Goblerto", 30, aI};
-	Inimigo goblin3 = {"Gobo", 40, aI};
-	Inimigo goblin4 = {"Goblinio", 50, aI};
-	Inimigo chefao = {"Juca", 95, aI};
-
-	Jogador jog = {1, 100, aJ};
-
-	Fase fase;
-	fase.nome = "Fase 1";
-	fase.inimigos[0] = goblin1;
-	fase.inimigos[1] = goblin2;
-	fase.inimigos[2] = goblin3;
-	fase.inimigos[3] = goblin4;
-	fase.inimigos[4] = chefao;
-
-	jogar_fase(jog, fase);*/
 }
 
-/*template <typename T>
+template <typename T>
 bool morreu(T personagem)
 {
-	if (personagem.vida < 0)
+	if (personagem->vida < 0)
 	{
 		return true;
 	}
@@ -604,6 +686,7 @@ bool morreu(T personagem)
 	}
 }
 
+/*
 template <typename Tata, typename Tdef>
 Tdef ataque(Tata atacante, Tdef defensor)
 {
@@ -618,7 +701,7 @@ Tdef ataque(Tata atacante, Tdef defensor)
 
 void jogarFase(Jogador* jogador, Fase* fase)
 {
-	while (jogador->vida > 0 && fase->ganhou == false)
+	while (morreu(jogador) == false && fase->ganhou == false)
 	{
 		Movimentar(jogador, fase);
 		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo != NULL){
@@ -626,8 +709,7 @@ void jogarFase(Jogador* jogador, Fase* fase)
 			LimparTela();
 			DisplayAnimation("Frames/CombatInitiation/", "Combat_", 12, 7, 10, 2, 10);
 			LimparTela();
-			int a = 0;
-			cin >> a;
+			iniciarCombate(jogador, fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo);
 		}
 	}
 }
