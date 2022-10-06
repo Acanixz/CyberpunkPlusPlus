@@ -1,7 +1,7 @@
 // CyberpunkPlusPlus.cpp : define o ponto de entrada para o aplicativo do console.
 //
 
-//#include "stdafx.h"
+#include "stdafx.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -25,7 +25,7 @@ struct Arma
 	string killMsg = "matou";
 	int dano_minimo = 5;
 	int dano_maximo = 10;
-	int stats[10] = {0};
+	int stats[10] = { 0 };
 	/* O que é cada stat:
 	0 - Destreza bonus (decide quem ataca primeiro)
 	1 - Chance bonus de critico (maior offset no RNG do atacante)
@@ -39,12 +39,12 @@ struct Jogador
 	int nivel = 0;
 	int vida = 100;
 	Arma* arma;
-	int posicao[2] = {-1, -1};
+	int posicao[2] = { -1, -1 };
 	COORD posicaoTela;
-	int stats[5] = {0};
+	int stats[5] = { 0 };
 	/* Stats do jogador:
 	0 - Sobrecarga, uma contagem de 0 a 100, aumenta a cada uso de implante
-	Obs: se chegar a 100, a quant. de inimigos nas proximas fases dobra e 
+	Obs: se chegar a 100, a quant. de inimigos nas proximas fases dobra e
 	você perde o controle do personagem no combate até o fim do jogo,
 	além de os usos de implantes nesse estado causam dano ao jogador
 
@@ -88,28 +88,28 @@ struct Fase
 
 COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false)
 {
-    CONSOLE_SCREEN_BUFFER_INFO consoleBuffer;
-    if (GetConsoleScreenBufferInfo(hConsoleOutput, &consoleBuffer))
-    {
+	CONSOLE_SCREEN_BUFFER_INFO consoleBuffer;
+	if (GetConsoleScreenBufferInfo(hConsoleOutput, &consoleBuffer))
+	{
 		COORD cursorCoords = consoleBuffer.dwCursorPosition;
-		if (isjogador){
+		if (isjogador) {
 			cursorCoords.X -= 1;
 		}
-        return cursorCoords;
-    }
-    else
-    {
-        return {0,0};
-    }
+		return cursorCoords;
+	}
+	else
+	{
+		return { 0,0 };
+	}
 }
 
-int RNG(int offset = 0, int max = 1){
+int RNG(int offset = 0, int max = 1) {
 	int num = 0;
 	num = rand() % max + offset;
 	return num;
 }
 
-Arma* GerarArmas(){
+Arma* GerarArmas() {
 	Arma* armas = new Arma[7];
 	armas[0].nome = "Punhos";
 	armas[0].descricaoAttk = " deu um soco em ";
@@ -183,45 +183,45 @@ Arma* GerarArmas(){
 	return armas;
 }
 
-Jogador* GerarJogador(Arma* arma){
+Jogador* GerarJogador(Arma* arma) {
 	Jogador* jogador = new Jogador;
 	jogador->arma = arma;
 	//jogador->stats[1] = 1;
 	//jogador->stats[2] = 1;
 	//jogador->stats[3] = 1;
 	//jogador->stats[4] = 1;
-	//jogador->stats[0] = 100;
+	jogador->stats[0] = 99;
 	return jogador;
 }
 
-Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0){
+Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
 	Inimigo* inimigos = new Inimigo[3];
 	switch (levelId)
 	{
 	case 0:
 		inimigos[0].nome = "Valentino";
 		inimigos[0].vida = 30;
-		inimigos[0].arma = listaArmas[RNG(0,2)]; // Items 0-1
-		//inimigos[0].spriteFile = "Valentino_0.txt";
+		inimigos[0].arma = listaArmas[RNG(0, 2)]; // Items 0-1
+												  //inimigos[0].spriteFile = "Valentino_0.txt";
 
 		inimigos[1].nome = "Valentino";
 		inimigos[1].vida = 25;
 		inimigos[1].arma = listaArmas[3]; // Rifle de assalto
-		//inimigos[1].spriteFile = "Valentino_0.txt";
+										  //inimigos[1].spriteFile = "Valentino_0.txt";
 
 		inimigos[2].nome = "Valentino";
 		inimigos[2].vida = 20;
-		inimigos[2].arma = listaArmas[RNG(5,2)]; // Items 5-6
-		//inimigos[2].spriteFile = "Valentino_0.txt";
+		inimigos[2].arma = listaArmas[RNG(5, 2)]; // Items 5-6
+												  //inimigos[2].spriteFile = "Valentino_0.txt";
 		break;
 	}
 	return inimigos;
 }
 
-Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3){
+Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3) {
 	Inimigo* inimigos = new Inimigo[numInimigos];
 
-	for (int i = 0; i < numInimigos; i++){
+	for (int i = 0; i < numInimigos; i++) {
 		int indexEscolhido = RNG(0, 3);
 		Inimigo inimigoEscolhido = inimigosPreset[indexEscolhido];
 		inimigos[i].nome = inimigoEscolhido.nome;
@@ -313,13 +313,44 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
 	}
 }
 
-void LimparCores(){
+void LimparCores() {
 	Display("", 50, 12, false, 7);
 }
 
-void LimparTela() {
-	LimparCores();  // Se der cls antes disso, a tela fica com a ultima cor usada
-	system("cls");
+void LimparTela(int tipo = 0) {
+	int Y = 0;
+	switch (tipo)
+	{
+	case 1: // Limpa informações inferiores da tela de combate
+		Y = 23;
+		for (Y; Y < 30; Y++) {
+			Display("                                    ", 0, Y, false, 10);
+		}
+
+		Y = 23;
+		for (Y; Y < 30; Y++) {
+			Display("                             ", 50, Y, false, 10);
+		}
+		break;
+
+	case 2: // Limpa log de combate
+		Y = 1;
+		for (Y; Y < 29; Y++) {
+			Display("                                    ", 100, Y, false, 10, false, true);
+		}
+		break;
+
+	case 3: // Limpa menu de escolhas de combate
+		Y = 23;
+		for (Y; Y < 30; Y++) {
+			Display("                                    ", 0, Y, false, 10);
+		}
+
+	default:
+		LimparCores();  // Se der cls antes disso, a tela fica com a ultima cor usada
+		system("cls");
+		break;
+	}
 }
 
 void Carregar_Menu() {
@@ -357,23 +388,24 @@ void Carregar_Tutorial() {
 	Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
 }
 
-bool VerificarCoord(Fase* fase, int tipo, int coords[2] = {0}){
+bool VerificarCoord(Fase* fase, int tipo, int coords[2] = { 0 }) {
 	switch (tipo)
 	{
 	case 0: // Verificação por existência do bloco na grade (Y e X)
-		if ((coords[0] >= 0 && coords[0] < fase->mapa.A) && (coords[1] >= 0 && coords[1] < fase->mapa.L)){
+		if ((coords[0] >= 0 && coords[0] < fase->mapa.A) && (coords[1] >= 0 && coords[1] < fase->mapa.L)) {
 			return true;
 		}
 		break;
-	
+
 	case 1: // Verificação por espaço bloqueado
 		return fase->mapa.blocos[coords[0]][coords[1]].bloqueado;
 		break;
 
 	case 2: // Verificação por inimigo
-		if (fase->mapa.blocos[coords[0]][coords[1]].inimigo != NULL){
+		if (fase->mapa.blocos[coords[0]][coords[1]].inimigo != NULL) {
 			return true;
-		} else{
+		}
+		else {
 			return false;
 		}
 		break;
@@ -391,8 +423,8 @@ Mapa CriarMapa(int A, int L) {
 	mapa.L = L;
 	mapa.blocos = new Bloco*[A]; // Geração de linhas
 
-	for (int i = 0; i < A; i++){ // Geração de colunas
-	    mapa.blocos[i] = new Bloco[L];
+	for (int i = 0; i < A; i++) { // Geração de colunas
+		mapa.blocos[i] = new Bloco[L];
 	}
 
 	return mapa;
@@ -404,15 +436,15 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	Display("Gerando mapa", 50, 11, false, 10, false, true);
 	fase->mapa = CriarMapa(alturaMapa, larguraMapa);
 	Display("Gerando obstaculos", 50, 12, false, 10, false, true);
-	int quantObstaculos = (alturaMapa/4 + larguraMapa/4);
-	if (quantObstaculos%2 != 0){
+	int quantObstaculos = (alturaMapa / 4 + larguraMapa / 4);
+	if (quantObstaculos % 2 != 0) {
 		quantObstaculos++;
 	}
-	
-	for (int i = 0; i < quantObstaculos;){ // For loop sem incremento automatico
-		int localEscolhido[2] = {RNG(0, alturaMapa), RNG(0, larguraMapa)};
-		if (VerificarCoord(fase, 0, localEscolhido)){ // Espaço existe?
-			if (VerificarCoord(fase, 1, localEscolhido) == false){ // Espaço está livre?
+
+	for (int i = 0; i < quantObstaculos;) { // For loop sem incremento automatico
+		int localEscolhido[2] = { RNG(0, alturaMapa), RNG(0, larguraMapa) };
+		if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
+			if (VerificarCoord(fase, 1, localEscolhido) == false) { // Espaço está livre?
 				fase->mapa.blocos[localEscolhido[0]][localEscolhido[1]].bloqueado = true;
 				i++;
 			}
@@ -420,11 +452,11 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	}
 
 	Display("Gerando inimigos", 50, 13, false, 10, false, true);
-	for (int i = 0; i < numInimigos;){ // For loop sem incremento automatico
-		int coordEscolhida[2] = {RNG(0, fase->mapa.A), RNG(0, fase->mapa.L)};
+	for (int i = 0; i < numInimigos;) { // For loop sem incremento automatico
+		int coordEscolhida[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
 
-		if (VerificarCoord(fase, 0, coordEscolhida)){ // Espaço existe?
-			if (VerificarCoord(fase, 1, coordEscolhida) == false && VerificarCoord(fase, 2, coordEscolhida) == false){
+		if (VerificarCoord(fase, 0, coordEscolhida)) { // Espaço existe?
+			if (VerificarCoord(fase, 1, coordEscolhida) == false && VerificarCoord(fase, 2, coordEscolhida) == false) {
 				// Bloco livre, sem inimigos também
 				fase->mapa.blocos[coordEscolhida[0]][coordEscolhida[1]].inimigo = &inimigos[i];
 				i++;
@@ -439,31 +471,31 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 	int A = fase->mapa.A;
 	int L = fase->mapa.L;
 	string borda = "@";
-	int bordaX = 50 - L/2;
-	if (bordaX%2 != 0)
+	int bordaX = 50 - L / 2;
+	if (bordaX % 2 != 0)
 		bordaX++;
 
 	for (int i = 0; i < L; i++) {
 		borda = borda + "-";
 	}
 	borda = borda + "@";
-	Display(borda, bordaX-1, 10, false, 7);
+	Display(borda, bordaX - 1, 10, false, 7);
 
 	for (int i = 0; i < A; i++) {
 		for (int j = 0; j < L; j++) {
 
 			Display(" ", bordaX + j, 11 + i, false, corChao);
-			
+
 
 			if (fase->mapa.blocos[i][j].bloqueado == true) {
 				Display(" ", bordaX + j, 11 + i, false, corObstaculo);
 			}
 
-			if (fase->mapa.blocos[i][j].inimigo != NULL){
+			if (fase->mapa.blocos[i][j].inimigo != NULL) {
 				Display("#", bordaX + j, 11 + i, false, corInimigo);
 			}
 
-			if (jogador->posicao[0] == i && jogador->posicao[1] == j){
+			if (jogador->posicao[0] == i && jogador->posicao[1] == j) {
 				Display("#", bordaX + j, 11 + i, false, corJogador);
 				jogador->posicaoTela = ObterPosicaoCursor(GetStdHandle(STD_OUTPUT_HANDLE), true);
 			}
@@ -477,45 +509,45 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 	Display(to_string(jogador->vida), 50, 2, false, 10, false, true);
 }
 
-void Movimentar(Jogador* jogador, Fase* fase){
-	int moveDelta[2] = {0};
-	bool debounce[4] = {false};
-		for (int i = 0; i < 4; i++){
-		if (kbhit()){
+void Movimentar(Jogador* jogador, Fase* fase) {
+	int moveDelta[2] = { 0 };
+	bool debounce[4] = { false };
+	for (int i = 0; i < 4; i++) {
+		if (_kbhit()) {
 			char tecla = _getch();
-			if ((tecla == 'W' || tecla == 'w') && debounce[0] == false){
+			if ((tecla == 'W' || tecla == 'w') && debounce[0] == false) {
 				debounce[0] = true;
 				moveDelta[0] -= 1;
 			}
 
-			if ((tecla == 'S' || tecla == 's') && debounce[1] == false){
+			if ((tecla == 'S' || tecla == 's') && debounce[1] == false) {
 				debounce[1] = true;
 				moveDelta[0] += 1;
 			}
 
-			if ((tecla == 'A' || tecla == 'a') && debounce[2] == false){
+			if ((tecla == 'A' || tecla == 'a') && debounce[2] == false) {
 				debounce[2] = true;
 				moveDelta[1] -= 1;
 			}
 
-			if ((tecla == 'D' || tecla == 'd') && debounce[3] == false){
+			if ((tecla == 'D' || tecla == 'd') && debounce[3] == false) {
 				debounce[3] = true;
 				moveDelta[1] += 1;
 			}
 		}
 	}
-		
-	if (moveDelta[0] != 0 || moveDelta[1] != 0){
-		int novaPosicao[2] = {0};
+
+	if (moveDelta[0] != 0 || moveDelta[1] != 0) {
+		int novaPosicao[2] = { 0 };
 		novaPosicao[0] = jogador->posicao[0] + moveDelta[0]; // Y
 		novaPosicao[1] = jogador->posicao[1] + moveDelta[1]; // X
 
-		COORD novaPosicaoTela = {jogador->posicaoTela.X, jogador->posicaoTela.Y};
+		COORD novaPosicaoTela = { jogador->posicaoTela.X, jogador->posicaoTela.Y };
 		novaPosicaoTela.X += moveDelta[1];
 		novaPosicaoTela.Y += moveDelta[0];
 
-		if (VerificarCoord(fase, 0, novaPosicao)){ // Espaço existe?
-			if (VerificarCoord(fase, 1, novaPosicao) == false){ // Espaço está livre?
+		if (VerificarCoord(fase, 0, novaPosicao)) { // Espaço existe?
+			if (VerificarCoord(fase, 1, novaPosicao) == false) { // Espaço está livre?
 				Display(" ", jogador->posicaoTela.X, jogador->posicaoTela.Y, false, corChao);
 				jogador->posicao[0] = novaPosicao[0];
 				jogador->posicao[1] = novaPosicao[1];
@@ -535,60 +567,58 @@ Tdef ataque(Tata atacante, Tdef defensor);
 
 void jogarFase(Jogador* jogador, Fase* fase);
 
-void iniciarCombate(Jogador* jogador, Inimigo* inimigo){
+void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	DisplayAnimation("Frames/Enemies/", inimigo->spriteFile, -1, inimigo->spriteColor, 0, 0);
 	// LOG DE COMBATE
 	Display("LOG DE COMBATE:", 100, 0, false, 10, false, true);
 	Display("Voce encontrou " + inimigo->nome, 100, 1, false, 10, false, true);
 	int logY = 2;
 
-	while (morreu(jogador) == false && morreu(inimigo) == false){
+	while (morreu(jogador) == false && morreu(inimigo) == false) {
+		LimparTela(1);
+
 		// DISPLAY DE INFORMAÇÕES DO PERSONAGEM
 		Display("Relatorio de integridade:", 50, 23, false, 10);
 		Display("Vida: " + to_string(jogador->vida) + "    ", 50, 24, false, 10);
 
-		if (jogador->stats[0] >= 50){ // Sobrecarga
-			if (jogador->stats[0] >= 75){
-				if (jogador->stats[0] >= 100){
+		if (jogador->stats[0] >= 50) { // Sobrecarga
+			if (jogador->stats[0] >= 75) {
+				if (jogador->stats[0] >= 100) {
 					Display("Sobrecarga: ERRO (CIBERPSICOSE DETECTADA)", 50, 25, false, 4);
-				} else {
+				}
+				else {
 					Display("Sobrecarga: " + to_string(jogador->stats[0]) + "% (PERIGO)", 50, 25, false, 4);
 				}
-				
-			} else{
+
+			}
+			else {
 				Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 25, false, 14);
 			}
-		} else {
-			Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%         ", 50, 25, false, 10);
 		}
-		
-		if (jogador->stats[2] > 0){ // Sandevistan status
+		else {
+			Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 25, false, 10);
+		}
+
+		if (jogador->stats[2] > 0) { // Sandevistan status
 			Display("Sandevistan ativo!", 50, 26, false, 10);
-		} else {
-			Display("                  ", 50, 26, false);
 		}
 
-		if (jogador->stats[3] > 0){ // Imp. Curativo status
+		if (jogador->stats[3] > 0) { // Imp. Curativo status
 			Display("Regeneracao em progresso..", 50, 27, false, 10);
-		} else {
-			Display("                          ", 50, 27, false);
 		}
 
-		if (jogador->stats[4] > 0){ // Kiroshi Optic status
+		if (jogador->stats[4] > 0) { // Kiroshi Optic status
 			Display("Assistencia de mira em uso!", 50, 28, false, 10);
-		} else {
-			Display("                           ", 50, 28, false);
 		}
-		
+
 		int escolha = 0;
 		int escolhaAux = 0; // Variavel temporaria para decisões
-		if (jogador->stats[0] < 100){ // Livre escolha caso n tenha ciberpsicose
-			while (escolha <= 0){
-				if (escolha == -1){
+		if (jogador->stats[0] < 100) { // Livre escolha caso n tenha ciberpsicose
+			while (escolha <= 0) {
+				if (escolha == -1) {
 					Display("Opcao invalida!", 1, 29, false, 4);
-				} else {
-					Display("               ", 1, 29, false);
 				}
+
 				Display("O que fazer?", 1, 23, false, 10);
 				Display("1 - Atacar", 1, 24, false, 10);
 				Display("2 - Esquivar", 1, 25, false, 10);
@@ -596,24 +626,30 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo){
 				Display("                                               ", 1, 28, false);
 				Display("Opcao Escolhida: ", 1, 28, false, 10, true);
 				cin >> escolhaAux;
-				if (VerificarOpcao(escolhaAux, 1, 3)){
-					if (VerificarOpcao(escolhaAux, 1, 2)){ // Escolhas primarias
+				if (VerificarOpcao(escolhaAux, 1, 3)) {
+					if (VerificarOpcao(escolhaAux, 1, 2)) { // Escolhas primarias
 						escolha = escolhaAux;
-						
-					} else { // Abrir menu de implantes
+
+					}
+					else { // Abrir menu de implantes
+						LimparTela(3);
 						Display("Escolha", 1, 23, false, 10);
-						Display("1 - Sandevistan ()", 1, 24, false, 10); // TO-DO
-						Display("2 - Esquivar", 1, 25, false, 10);
-						Display("3 - Usar Implante", 1, 26, false, 10);
+						Display("1 - Sandevistan (varias acoes no mesmo turno)", 1, 24, false, 10);
+						Display("2 - Implante Regenerativo (20% cura por 2 turnos)", 1, 25, false, 10);
+						Display("3 - Kiroshi Opctics (Precisao aumentada)", 1, 26, false, 10);
+						Display("4 - Voltar", 1, 27, false, 10);
 						Display("                                               ", 1, 28, false);
 						Display("Opcao Escolhida: ", 1, 28, false, 10, true);
+						cin >> escolha;
 					}
-				} else {
+				}
+				else {
 					escolha = -1;
 				}
 			}
-			
-		} else {
+
+		}
+		else {
 
 		}
 	}
@@ -626,13 +662,13 @@ int main()
 
 	// DADOS DO JOGO, GERADO APENAS UMA VEZ
 	Arma* armas = GerarArmas();
-	string nomeFases[3] = {"Bairro 1", "Bairro 2", "Torre Arasaka"};
-	int alturaFases[3] = {10,5,15};
-	int larguraFases[3] = {20,30,40};
-	int quantidadeInimigos[3] = {RNG(1, 5), RNG(1, 5), RNG(1, 5)};
+	string nomeFases[3] = { "Bairro 1", "Bairro 2", "Torre Arasaka" };
+	int alturaFases[3] = { 10,5,15 };
+	int larguraFases[3] = { 20,30,40 };
+	int quantidadeInimigos[3] = { RNG(1, 5), RNG(1, 5), RNG(1, 5) };
 	Inimigo** inimigos_Matriz = new Inimigo*[3];
 
-	for (int i = 0; i < 3; i++){
+	for (int i = 0; i < 3; i++) {
 		inimigos_Matriz[i] = new Inimigo[3];
 	}
 	////////////////////
@@ -645,21 +681,21 @@ int main()
 	LimparInputBuffer();
 	EsperarInput();
 
-	for (int levelId = 0; levelId < 3; levelId++){
+	for (int levelId = 0; levelId < 3; levelId++) {
 		LimparTela();
 		Display("Criando " + nomeFases[levelId], 50, 10, false, 10, false, true);
 		int numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
 		Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
 		Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
 		Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
-		
+
 		Display("Gerando jogador", 50, 14, false, 10, false, true);
 		Jogador* jogador = GerarJogador(&armas[0]);
 
-		while (jogador->posicao[0] == -1){
-			int localEscolhido[2] = {RNG(0, fase->mapa.A), RNG(0, fase->mapa.L)};
-			if (VerificarCoord(fase, 0, localEscolhido)){ // Espaço existe?
-				if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false){
+		while (jogador->posicao[0] == -1) {
+			int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
+			if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
+				if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
 					// Espaço livre, sem inimigos
 					jogador->posicao[0] = localEscolhido[0]; // Posicionar Y
 					jogador->posicao[1] = localEscolhido[1]; // Posicionar X
@@ -690,13 +726,13 @@ bool morreu(T personagem)
 template <typename Tata, typename Tdef>
 Tdef ataque(Tata atacante, Tdef defensor)
 {
-	// 2 - 5
-	int intervalo_dano = atacante.arma.dano_maximo - atacante.arma.dano_minimo + 1;
-	int dano = atacante.arma.dano_minimo + rand() % intervalo_dano;
+// 2 - 5
+int intervalo_dano = atacante.arma.dano_maximo - atacante.arma.dano_minimo + 1;
+int dano = atacante.arma.dano_minimo + rand() % intervalo_dano;
 
-	defensor.vida = defensor.vida - dano;
+defensor.vida = defensor.vida - dano;
 
-	return defensor;
+return defensor;
 }*/
 
 void jogarFase(Jogador* jogador, Fase* fase)
@@ -704,7 +740,7 @@ void jogarFase(Jogador* jogador, Fase* fase)
 	while (morreu(jogador) == false && fase->ganhou == false)
 	{
 		Movimentar(jogador, fase);
-		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo != NULL){
+		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo != NULL) {
 			// Inimigo encontrado, iniciar combate
 			LimparTela();
 			DisplayAnimation("Frames/CombatInitiation/", "Combat_", 12, 7, 10, 2, 10);
