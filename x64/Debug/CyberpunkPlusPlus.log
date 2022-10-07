@@ -1,0 +1,4 @@
+﻿  CyberpunkPlusPlus.cpp
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(272,40): warning C4267: '=': conversão de 'size_t' para 'SHORT', possível perda de dados
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(681,12): warning C4244: 'argumento': conversão de 'time_t' para 'unsigned int', possível perda de dados
+  CyberpunkPlusPlus.vcxproj -> C:\RootProjects\CyberpunkPlusPlus\x64\Debug\CyberpunkPlusPlus.exe
