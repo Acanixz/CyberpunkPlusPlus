@@ -9,6 +9,7 @@
 #include <conio.h>
 #include <Windows.h>
 #include <locale.h>
+#include <math.h>
 using namespace std;
 
 // Palheta de cores //
@@ -37,11 +38,12 @@ struct Arma
 struct Jogador
 {
 	int nivel = 0;
-	int vida = 100;
+	int vida;
+	int vidaMaxima = 100;
 	Arma* arma;
 	int posicao[2] = { -1, -1 };
 	COORD posicaoTela;
-	int stats[5] = { 0 };
+	int stats[6] = { 0 };
 	/* Stats do jogador:
 	0 - Sobrecarga, uma contagem de 0 a 100, aumenta a cada uso de implante
 	Obs: se chegar a 100, a quant. de inimigos nas proximas fases dobra e
@@ -52,21 +54,26 @@ struct Jogador
 	2 - Bonus Sandevistan (quantidade de ações extras no mesmo turno)
 	3 - Bonus Implante curativo (cura 20% da vida maxima por turno)
 	4 - Bonus Kiroshi Optic (próximo ataque tem +50% de chance de acertar)
+	5 - Overshield (valor aleatório concedido ao defender por um turno)
 	*/
 };
 
 struct Inimigo
 {
 	string nome = "Inimigo sem nome";
-	int vida = 100;
-	Arma arma;
+	int vida;
+	int vidaMaxima = 100;
+	Arma* arma;
 	string spriteFile = "Placeholder.txt";
 	int spriteColor = 7;
-	int stats[3] = { 0 };
+	int stats[4] = { 0 };
 	/* Stats do inimigo:
 	0 - Destreza (decide quem ataca primeiro)
 	1 - Crit base
 	2 - Dodge base
+	3 - Sandevistan bonus (exclusivo da equipe arasaka e Adam Smasher)
+	Não concede turnos extras, ao invés disso, permite que o jogador erre
+	ataques mesmo com o sandevistan ativo
 	*/
 };
 
@@ -113,6 +120,13 @@ int RNG(int offset = 0, int max = 1) {
 	int num = 0;
 	num = rand() % max + offset;
 	return num;
+}
+
+int Aproximacao(int valor) {
+	if (valor % 2 != 0) {
+		valor++;
+	}
+	return valor;
 }
 
 Arma* GerarArmas() {
@@ -191,12 +205,13 @@ Arma* GerarArmas() {
 
 Jogador* GerarJogador(Arma* arma) {
 	Jogador* jogador = new Jogador;
+	jogador->vida = jogador->vidaMaxima;
 	jogador->arma = arma;
 	//jogador->stats[1] = 1;
 	//jogador->stats[2] = 1;
 	//jogador->stats[3] = 1;
 	//jogador->stats[4] = 1;
-	jogador->stats[0] = 99;
+	//jogador->stats[0] = 99;
 	return jogador;
 }
 
@@ -206,18 +221,21 @@ Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
 	{
 	case 0:
 		inimigos[0].nome = "Valentino";
-		inimigos[0].vida = 30;
-		inimigos[0].arma = listaArmas[RNG(0, 2)]; // Items 0-1
+		inimigos[0].vidaMaxima = 30;
+		inimigos[0].vida = inimigos[0].vidaMaxima;
+		inimigos[0].arma = &listaArmas[RNG(0, 2)]; // Items 0-1
 		//inimigos[0].spriteFile = "Valentino_0.txt";
 
 		inimigos[1].nome = "Valentino";
-		inimigos[1].vida = 25;
-		inimigos[1].arma = listaArmas[3]; // Rifle de assalto
+		inimigos[1].vidaMaxima = 25;
+		inimigos[1].vida = inimigos[1].vidaMaxima;
+		inimigos[1].arma = &listaArmas[3]; // Rifle de assalto
 		//inimigos[1].spriteFile = "Valentino_0.txt";
 
 		inimigos[2].nome = "Valentino";
-		inimigos[2].vida = 20;
-		inimigos[2].arma = listaArmas[RNG(5, 2)]; // Items 5-6
+		inimigos[2].vidaMaxima = 20;
+		inimigos[2].vida = inimigos[2].vidaMaxima;
+		inimigos[2].arma = &listaArmas[RNG(5, 2)]; // Items 5-6
 		//inimigos[2].spriteFile = "Valentino_0.txt";
 		break;
 	}
@@ -264,7 +282,7 @@ void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, 
 	if (coordX >= 0 || coordY >= 0) {
 		CONSOLE_CURSOR_INFO cursorInfo;
 		GetConsoleCursorInfo(STD_OH, &cursorInfo);
-		COORD coord;
+		COORD coord{};
 
 		if (coordX >= 0)
 			coord.X = coordX;
@@ -342,7 +360,7 @@ void LimparTela(int tipo = 0) {
 	case 2: // Limpa log de combate
 		Y = 1;
 		for (Y; Y < 29; Y++) {
-			Display("                                    ", 100, Y, false, 10, false, true);
+			Display("                                      ", 100, Y, false, 10, false, true);
 		}
 		break;
 
@@ -444,9 +462,7 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	fase->mapa = CriarMapa(alturaMapa, larguraMapa);
 	Display("Gerando obstaculos", 50, 12, false, 10, false, true);
 	int quantObstaculos = (alturaMapa / 4 + larguraMapa / 4);
-	if (quantObstaculos % 2 != 0) {
-		quantObstaculos++;
-	}
+	Aproximacao(quantObstaculos);
 
 	for (int i = 0; i < quantObstaculos;) { // For loop sem incremento automatico
 		int localEscolhido[2] = { RNG(0, alturaMapa), RNG(0, larguraMapa) };
@@ -479,8 +495,7 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 	int L = fase->mapa.L;
 	string borda = "@";
 	int bordaX = 50 - L / 2;
-	if (bordaX % 2 != 0)
-		bordaX++;
+	Aproximacao(bordaX);
 
 	for (int i = 0; i < L; i++) {
 		borda = borda + "-";
@@ -569,8 +584,8 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 template <typename T>
 bool morreu(T personagem);
 
-template <typename Tata, typename Tdef>
-Tdef ataque(Tata atacante, Tdef defensor);
+void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog);
+void ataque(Inimigo* atacante, Jogador* defensor, int &Ylog, bool bloqueando = false);
 
 void jogarFase(Jogador* jogador, Fase* fase);
 
@@ -579,10 +594,34 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	// LOG DE COMBATE
 	Display("LOG DE COMBATE:", 100, 0, false, 10, false, true);
 	Display("Voce encontrou " + inimigo->nome, 100, 1, false, 10, false, true);
-	int logY = 2;
+	int Ylog = 2;
 
 	while (morreu(jogador) == false && morreu(inimigo) == false) {
 		LimparTela(1);
+
+		if (jogador->stats[2] > 0) { // Sandevistan countdown
+			jogador->stats[2] -= 1;
+		}
+		else {
+			if (jogador->stats[0] < 100) { // Decaimento de sobrecarga
+				jogador->stats[0] -= 10;
+				if (jogador->stats[0] < 0) {
+					jogador->stats[0] = 0;
+				}
+			}
+		}
+
+		if (jogador->stats[3] > 0) { // Imp. Reg. countdown
+			jogador->stats[3] -= 1;
+			jogador->vida += jogador->vidaMaxima * .2;
+			if (jogador->vida > jogador->vidaMaxima) {
+				jogador->vida = jogador->vidaMaxima;
+			}
+		}
+
+		if (jogador->stats[4] > 0) { // Kiroshi countdown
+			jogador->stats[4] -= 1;
+		}
 
 		// DISPLAY DE INFORMAÇÕES DO PERSONAGEM
 		Display("Relatorio de integridade:", 50, 23, false, 10);
@@ -607,11 +646,11 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 		}
 
 		if (jogador->stats[2] > 0) { // Sandevistan status
-			Display("Sandevistan ativo!", 50, 26, false, 10);
+			Display("Sandevistan ativo! (" + to_string(jogador->stats[2]) + ")", 50, 26, false, 10);
 		}
 
 		if (jogador->stats[3] > 0) { // Imp. Curativo status
-			Display("Regeneracao em progresso..", 50, 27, false, 10);
+			Display("Regeneracao em progresso (" + to_string(jogador->stats[3]) + ")", 50, 27, false, 10);
 		}
 
 		if (jogador->stats[4] > 0) { // Kiroshi Optic status
@@ -627,12 +666,13 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 					Display("Opcao invalida!", 1, 29, false, 4);
 				}
 
-				Display("O que fazer?", 1, 23, false, 10);
+				Display("O que fazer? [[Vida do inimigo: " + to_string(inimigo->vida) + "]]", 1, 23, false, 10);
 				Display("1 - Atacar", 1, 24, false, 10);
-				Display("2 - Esquivar", 1, 25, false, 10);
+				Display("2 - Bloquear", 1, 25, false, 10);
 				Display("3 - Usar Implante", 1, 26, false, 10);
 				Display("                                               ", 1, 28, false);
 				Display("Opcao Escolhida: ", 1, 28, false, 10, true);
+				LimparInputBuffer();
 				cin >> escolhaAux;
 				if (VerificarOpcao(escolhaAux, 1, 3)) {
 					if (VerificarOpcao(escolhaAux, 1, 2)) { // Escolhas primarias
@@ -648,6 +688,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 						Display("4 - Voltar", 1, 27, false, 10);
 						Display("                                               ", 1, 28, false);
 						Display("Opcao Escolhida: ", 1, 28, false, 10, true);
+						LimparInputBuffer();
 						cin >> escolhaAux;
 						if (VerificarOpcao(escolhaAux, 1, 3)) {
 							escolha = 10 + escolhaAux;
@@ -659,10 +700,64 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 				}
 			}
 
+			if (Ylog > 20) {
+				Ylog = 1;
+				LimparTela(2);
+			}
+
 			switch (escolha)
 			{
 			case 1: // Ataque
-				//if () TO-DO
+				if (jogador->stats[1] + jogador->arma->stats[0] > inimigo->stats[0]) {
+					
+					ataque(jogador, inimigo, Ylog);
+					if (jogador->stats[2] <= 0) { // Sandevistan check
+						ataque(inimigo, jogador, Ylog);
+					}
+					
+				}
+				else {
+					if (jogador->stats[2] <= 0) { // Sandevistan check
+						ataque(inimigo, jogador, Ylog);
+					}
+					ataque(jogador, inimigo, Ylog);
+				}
+				break;
+
+			case 2: // Bloquear
+				jogador->stats[5] = RNG(5, 20); // Conceder overshield aleatório
+				Display("Voce ativou OverS. (" + to_string(jogador->stats[5]) + "dmg DEF)", 100, Ylog, false, 10, false, true);
+				Ylog++;
+				ataque(inimigo, jogador, Ylog, true);
+				break;
+
+			case 11:
+				Display("Voce usou o Sandevistan!", 100, Ylog, false, 10, false, true);
+				Ylog++;
+				jogador->stats[2] = 3; // Sandevistan = +2 ações + ação atual
+				jogador->stats[0] += 35; // + Sobrecarga
+				break;
+
+			case 12:
+				Display("Voce usou o I. Regenerativo!", 100, Ylog, false, 10, false, true);
+				Ylog++;
+				jogador->stats[3] = 2; // Implante renegerativo = 2 turnos de cura
+				jogador->stats[0] += 20; // + Sobrecarga - 10
+
+				if (jogador->stats[2] <= 0) { // Sandevistan check
+					ataque(inimigo, jogador, Ylog);
+				}
+				break;
+
+			case 13:
+				Display("Voce usou o Kiroshi Opctics!", 100, Ylog, false, 10, false, true);
+				Ylog++;
+				jogador->stats[4] = 2; // Kiroshi Optics = Prox. Turno c/ precisão aumentada
+				jogador->stats[0] += 25; // + Sobrecarga - 10
+
+				if (jogador->stats[2] <= 0) { // Sandevistan check
+					ataque(inimigo, jogador, Ylog);
+				}
 				break;
 
 			default:
@@ -673,6 +768,18 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 
 		}
 	}
+
+	LimparTela(1);
+	if (morreu(inimigo)) {
+		Display("Voce" + jogador->arma->killMsg + inimigo->nome, 1, 23, false, 10);
+	}
+	else {
+		Display(inimigo->nome + inimigo->arma->killMsg + "voce", 1, 23, false, 10);
+	}
+	Display("Aperte qualquer tecla p/ continuar", 1, 24, false, 160);
+	LimparCores();
+	LimparInputBuffer();
+	EsperarInput();
 }
 
 int main()
@@ -694,6 +801,7 @@ int main()
 	////////////////////
 
 	Carregar_Menu();
+	LimparInputBuffer();
 	EsperarInput();
 	LimparTela();
 
@@ -710,7 +818,8 @@ int main()
 		Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
 
 		Display("Gerando jogador", 50, 14, false, 10, false, true);
-		Jogador* jogador = GerarJogador(&armas[0]);
+		Jogador* jogador = GerarJogador(&armas[0]); // Jogador no soco
+		//Jogador* jogador = GerarJogador(&armas[4]); // Jogador de minigun
 
 		while (jogador->posicao[0] == -1) {
 			int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
@@ -732,7 +841,7 @@ int main()
 template <typename T>
 bool morreu(T personagem)
 {
-	if (personagem->vida < 0)
+	if (personagem->vida <= 0)
 	{
 		return true;
 	}
@@ -742,16 +851,109 @@ bool morreu(T personagem)
 	}
 }
 
-template <typename Tata, typename Tdef>
-Tdef ataque(Tata atacante, Tdef defensor)
+void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 {
-	// 2 - 5
-	int intervalo_dano = atacante.arma.dano_maximo - atacante.arma.dano_minimo + 1;
-	int dano = atacante.arma.dano_minimo + rand() % intervalo_dano;
+	int totalTiros = atacante->arma->stats[3];
+	if (atacante->arma->stats[3] <= 0) {
+		totalTiros = 1;
+	}
+	for (int i = 0; i < totalTiros; i++) {
+		int dano = RNG(atacante->arma->dano_minimo, atacante->arma->dano_maximo - atacante->arma->dano_minimo);
 
-	defensor.vida = defensor.vida - dano;
+		int acertou = RNG(1 - defensor->stats[2], 20); // 1 - Dodge base inimigo
+		if (atacante->stats[4]) {
+			acertou = RNG(5 - defensor->stats[2], 20); // Kiroshi Optics ativo
+		}
 
-	return defensor;
+		if (atacante->stats[2] > 0 && defensor->stats[3] <= 0) { // Sandevistan check
+			acertou = 10; // Se sandevistan ativo e inimigo não tem sandevistan, acertou!
+		} 
+		if (acertou >= 10) { // Alvo acertado
+			int crit = RNG(1 + atacante->arma->stats[1], 20); // 1 + Crit bonus arma
+
+			if (atacante->stats[4]) {
+				crit = RNG(3 + atacante->arma->stats[1], 20); // Kiroshi Crit bonus + Crit arma
+			}
+
+			if (crit >= 10) {
+				dano *= 1.5;
+			}
+			defensor->vida -= dano;
+			if (defensor->vida < 0) {
+				defensor->vida = 0;
+			}
+
+			if (crit < 10) {
+				Display("Voce" + atacante->arma->descricaoAttk + defensor->nome + " (-" + to_string(dano) + "HP)", 100, Ylog, false, 10, false, true);
+			}
+			else {
+				Display("Voce" + atacante->arma->descricaoAttk + defensor->nome + " (-" + to_string(dano) + "HP!)", 100, Ylog, false, 10, false, true);
+			}
+		}
+		else {
+			Display("Voce errou!", 100, Ylog, false, 10, false, true);
+		}
+		Ylog++;
+		Sleep(100);
+	}
+}
+
+void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando)
+{
+	int totalTiros = atacante->arma->stats[3];
+	if (atacante->arma->stats[3] <= 0) {
+		totalTiros = 1;
+	}
+	bool overshieldDestruido = false;
+	for (int i = 0; i < totalTiros; i++) {
+		int dano = RNG(atacante->arma->dano_minimo, atacante->arma->dano_maximo - atacante->arma->dano_minimo);
+		int danoOriginal = dano;
+		dano -= defensor->stats[5];
+		defensor->stats[5] -= danoOriginal;
+		
+
+		int acertou = RNG(1 - defensor->arma->stats[2], 20); // 1 - Dodge bonus jogador
+		if (dano <= 0) {
+			acertou = 0; // Erra automaticamente se o overshield anulou o ataque
+		}
+
+		if (defensor->stats[5] > 0) {
+			Display("Bloqueado " + to_string(danoOriginal) + "dmg", 100, Ylog, false, 10, false, true);
+			Ylog++;
+		}
+		else {
+			if (overshieldDestruido == false && bloqueando) {
+				overshieldDestruido = true;
+				Display("Overshield quebrou!", 100, Ylog, false, 10, false, true);
+				Ylog++;
+			}
+		}
+
+		if (acertou >= 10) { // Alvo acertado
+			int crit = RNG(1 + atacante->stats[1], 20); // 1 + Crit base inimigo
+
+			if (crit >= 10) {
+				dano *= 1.5;
+			}
+			defensor->vida -= dano;
+			if (defensor->vida < 0) {
+				defensor->vida = 0;
+			}
+
+			if (crit < 10) {
+				Display(atacante->nome + atacante->arma->descricaoAttk + +"voce (-" + to_string(dano) + "HP)", 100, Ylog, false, 10, false, true);
+			}
+			else {
+				Display(atacante->nome + atacante->arma->descricaoAttk + "voce (-" + to_string(dano) + "HP!)", 100, Ylog, false, 10, false, true);
+			}
+		}
+		else {
+			Display(atacante->nome + " errou!", 100, Ylog, false, 10, false, true);
+		}
+		Ylog++;
+		Sleep(100);
+	}
+	defensor->stats[5] = 0; // Remove overshield do jogador
 }
 
 void jogarFase(Jogador* jogador, Fase* fase)
