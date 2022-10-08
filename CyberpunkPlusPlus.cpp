@@ -18,6 +18,12 @@ int corObstaculo = 85;
 int corJogador = 139;
 int corInimigo = 140;
 
+// Custos de Implantes //
+int custoSandevistan = 50;
+int custoImpReg = 25;
+int custoKiroshiOptics = 25;
+
+
 // Structs // 
 struct Arma
 {
@@ -226,18 +232,21 @@ Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
 		inimigos[0].vida = inimigos[0].vidaMaxima;
 		inimigos[0].arma = &listaArmas[RNG(0, 2)]; // Items 0-1
 		//inimigos[0].spriteFile = "Valentino_0.txt";
+		inimigos[0].spriteColor = 5;
 
 		inimigos[1].nome = "Valentino";
 		inimigos[1].vidaMaxima = 25;
 		inimigos[1].vida = inimigos[1].vidaMaxima;
 		inimigos[1].arma = &listaArmas[3]; // Rifle de assalto
 		//inimigos[1].spriteFile = "Valentino_0.txt";
+		inimigos[1].spriteColor = 3;
 
 		inimigos[2].nome = "Valentino";
 		inimigos[2].vidaMaxima = 20;
 		inimigos[2].vida = inimigos[2].vidaMaxima;
 		inimigos[2].arma = &listaArmas[RNG(5, 2)]; // Items 5-6
 		//inimigos[2].spriteFile = "Valentino_0.txt";
+		inimigos[2].spriteColor = 14;
 		break;
 	}
 	return inimigos;
@@ -252,6 +261,8 @@ Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3) {
 		inimigos[i].nome = inimigoEscolhido.nome;
 		inimigos[i].vida = inimigoEscolhido.vida;
 		inimigos[i].arma = inimigoEscolhido.arma;
+		inimigos[i].spriteFile = inimigoEscolhido.spriteFile;
+		inimigos[i].spriteColor = inimigoEscolhido.spriteColor;
 	}
 
 	return inimigos;
@@ -278,7 +289,7 @@ void EsperarInput(char teclaEsperada = '0', int waitTimer = 50) {
 	LimparInputBuffer();
 }
 
-void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, int textColor = 7, bool showCursor = false, bool centralize = false) {
+void Display(string msg, int coordX = -1, int coordY = -1, int textColor = 7, bool showCursor = false, bool centralize = false) {
 	HANDLE STD_OH = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (coordX >= 0 || coordY >= 0) {
 		CONSOLE_CURSOR_INFO cursorInfo;
@@ -300,8 +311,6 @@ void Display(string msg, int coordX = -1, int coordY = -1, bool Newline = true, 
 
 	SetConsoleTextAttribute(STD_OH, textColor);
 	cout << msg;
-	if (Newline)
-		cout << endl;
 }
 
 void DisplayAnimation(string filePath, string fileName, int frames = -1, int textColor = 7, int cornerX = -1, int cornerY = -1, int waitTime = 1000) {
@@ -315,7 +324,7 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
 		/* code */
 		frame.open(filePath + fileName);
 		while (getline(frame, linha)) {
-			Display(linha, cornerX, cornerY + i, false, textColor);
+			Display(linha, cornerX, cornerY + i, textColor);
 			i++;
 		}
 
@@ -327,7 +336,7 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
 			i = 0;
 			frame.open(filePath + fileName + to_string(j) + ".txt");
 			while (getline(frame, linha)) {
-				Display(linha, cornerX, cornerY + i, false, textColor);
+				Display(linha, cornerX, cornerY + i, textColor);
 				i++;
 			}
 
@@ -339,7 +348,7 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
 }
 
 void LimparCores() {
-	Display("", 50, 12, false, 7);
+	Display("", 50, 12, 7);
 }
 
 void LimparTela(int tipo = 0) {
@@ -349,26 +358,26 @@ void LimparTela(int tipo = 0) {
 	case 1: // Limpa informações inferiores da tela de combate
 		Y = 23;
 		for (Y; Y < 30; Y++) {
-			Display("                                              ", 0, Y, false, 10);
+			Display("                                               ", 0, Y, 10);
 		}
 
 		Y = 23;
 		for (Y; Y < 30; Y++) {
-			Display("                             ", 50, Y, false, 10);
+			Display("                             ", 50, Y, 10);
 		}
 		break;
 
 	case 2: // Limpa log de combate
 		Y = 1;
 		for (Y; Y < 29; Y++) {
-			Display("                                      ", 100, Y, false, 10, false, true);
+			Display("                                      ", 100, Y, false, 10, true);
 		}
 		break;
 
 	case 3: // Limpa menu de escolhas de combate
 		Y = 23;
 		for (Y; Y < 30; Y++) {
-			Display("                                              ", 0, Y, false, 10);
+			Display("                                               ", 0, Y, 10);
 		}
 		break;
 
@@ -380,38 +389,38 @@ void LimparTela(int tipo = 0) {
 }
 
 void Carregar_Menu() {
-	Display("", 50, 12, false, 7, true);
+	Display("", 50, 12, 7, true);
 	Sleep(1000);
 	DisplayAnimation("Frames/MenuAnimated/", "MenuFrame_", 9, 10, 10, 2, 50);
-	Display("Cyberpunk++", 50, 1, false, 10, false, true);
+	Display("Cyberpunk++", 50, 1, 10, false, true);
 	Sleep(500);
-	Display("Desenvolvido por:", 85, 3, false, 14, false, true);
-	Display("Eduardo da Rocha Weber", 85, 5, false, 14, false, true);
-	Display("Herick Vitor Vieira Bittencourt", 85, 6, false, 14, false, true);
-	Display("Eduardo Miguel Fuchs Perez", 85, 7, false, 14, false, true);
-	Display("Aperte qualquer tecla para comecar", 50, 25, false, 160, false, true);
+	Display("Desenvolvido por:", 85, 3, 14, false, true);
+	Display("Eduardo da Rocha Weber", 85, 5, 14, false, true);
+	Display("Herick Vitor Vieira Bittencourt", 85, 6, 14, false, true);
+	Display("Eduardo Miguel Fuchs Perez", 85, 7, 14, false, true);
+	Display("Aperte qualquer tecla para comecar", 50, 25, 160, false, true);
 	LimparCores();
 }
 
 void Carregar_Tutorial() {
 	DisplayAnimation("Frames/Tutorial/", "Tutorial.txt", -1, 7, 50, 1);
 
-	Display("Tutorial Basico:", 30, 2, false, 7, false, true);
+	Display("Tutorial Basico:", 30, 2, 7, false, true);
 
-	Display("#", 20, 4, false, corJogador);
-	Display("<--- Jogador", 30, 4, false, 7, false, true);
-	Display("#", 20, 7, false, corInimigo);
-	Display("<--- Inimigo", 30, 7, false, 7, false, true);
+	Display("#", 20, 4, corJogador);
+	Display("<--- Jogador", 30, 4, 7, false, true);
+	Display("#", 20, 7, corInimigo);
+	Display("<--- Inimigo", 30, 7, 7, false, true);
 
-	Display(" ", 20, 11, false, corChao);
-	Display("<--- Chao", 30, 11, false, 7, false, true);
-	Display(" ", 20, 14, false, corObstaculo);
-	Display("<--- Parede", 30, 14, false, 7, false, true);
+	Display(" ", 20, 11, corChao);
+	Display("<--- Chao", 30, 11, 7, false, true);
+	Display(" ", 20, 14, corObstaculo);
+	Display("<--- Parede", 30, 14, 7, false, true);
 
-	Display("Use as teclas WASD para se movimentar pelo mapa", 50, 23, false, 7, false, true);
-	Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, false, 7, false, true);
+	Display("Use as teclas WASD para se movimentar pelo mapa", 50, 23, 7, false, true);
+	Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, 7, false, true);
 	Sleep(1000);
-	Display("Aperte qualquer tecla para comecar", 50, 27, false, 160, false, true);
+	Display("Aperte qualquer tecla para comecar", 50, 27, 160, false, true);
 }
 
 bool VerificarCoord(Fase* fase, int tipo, int coords[2] = { 0 }) {
@@ -460,9 +469,9 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	Fase* fase = new Fase;
 	fase->nome = nome;
 	fase->inimigosRestantes = numInimigos;
-	Display("Gerando mapa", 50, 11, false, 10, false, true);
+	Display("Gerando mapa", 50, 11, 10, false, true);
 	fase->mapa = CriarMapa(alturaMapa, larguraMapa);
-	Display("Gerando obstaculos", 50, 12, false, 10, false, true);
+	Display("Gerando obstaculos", 50, 12, 10, false, true);
 	int quantObstaculos = (alturaMapa / 4 + larguraMapa / 4);
 	Aproximacao(quantObstaculos);
 
@@ -476,7 +485,7 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 		}
 	}
 
-	Display("Gerando inimigos", 50, 13, false, 10, false, true);
+	Display("Gerando inimigos", 50, 13, 10, false, true);
 	for (int i = 0; i < numInimigos;) { // For loop sem incremento automatico
 		int coordEscolhida[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
 
@@ -503,37 +512,44 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 		borda = borda + "-";
 	}
 	borda = borda + "@";
-	Display(borda, bordaX - 1, 10, false, 7);
+	Display(borda, bordaX - 1, 10, 7);
 
 	for (int i = 0; i < A; i++) {
 		for (int j = 0; j < L; j++) {
 
-			Display(" ", bordaX + j, 11 + i, false, corChao);
+			Display(" ", bordaX + j, 11 + i, corChao);
 
 
 			if (fase->mapa.blocos[i][j].bloqueado == true) {
-				Display(" ", bordaX + j, 11 + i, false, corObstaculo);
+				Display(" ", bordaX + j, 11 + i, corObstaculo);
 			}
 
 			if (fase->mapa.blocos[i][j].inimigo != NULL) {
-				Display("#", bordaX + j, 11 + i, false, corInimigo);
+				Display("#", bordaX + j, 11 + i, corInimigo);
 			}
 
 			if (jogador->posicao[0] == i && jogador->posicao[1] == j) {
-				Display("#", bordaX + j, 11 + i, false, corJogador);
+				Display("#", bordaX + j, 11 + i, corJogador);
 				jogador->posicaoTela = ObterPosicaoCursor(GetStdHandle(STD_OUTPUT_HANDLE), true);
 			}
 
-			Display("|", bordaX - 1, 11 + i, false);
-			Display("|", bordaX + j + 1, 11 + i, false);
+			Display("|", bordaX - 1, 11 + i);
+			Display("|", bordaX + j + 1, 11 + i);
 		}
 	}
-	Display(borda, bordaX - 1, 11 + A, false);
-	Display(fase->nome, 50, 1, false, 10, false, true);
-	Display(to_string(jogador->vida), 50, 2, false, 10, false, true);
+	Display(borda, bordaX - 1, 11 + A);
+	Display("Fase: " + fase->nome, 50, 1, 10, false, true);
+}
+
+void DisplayStatusJogador(Jogador* jogador) {
+	Display("          ", 50, 2, 10, false, true);
+	Display("Vida: " + to_string(jogador->vida), 50, 2, 10, false, true);
+	Display("                  ", 50, 3, 10, false, true);
+	Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 3, 10, false, true);
 }
 
 void Movimentar(Jogador* jogador, Fase* fase) {
+	DisplayStatusJogador(jogador);
 	int moveDelta[2] = { 0 };
 	bool debounce[4] = { false };
 	for (int i = 0; i < 4; i++) {
@@ -572,13 +588,13 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 
 		if (VerificarCoord(fase, 0, novaPosicao)) { // Espaço existe?
 			if (VerificarCoord(fase, 1, novaPosicao) == false) { // Espaço está livre?
-				Display(" ", jogador->posicaoTela.X, jogador->posicaoTela.Y, false, corChao);
+				Display(" ", jogador->posicaoTela.X, jogador->posicaoTela.Y, corChao);
 				jogador->posicao[0] = novaPosicao[0];
 				jogador->posicao[1] = novaPosicao[1];
-				Display("#", novaPosicaoTela.X, novaPosicaoTela.Y, false, corJogador);
+				Display("#", novaPosicaoTela.X, novaPosicaoTela.Y, corJogador);
 				jogador->posicaoTela = novaPosicaoTela;
 
-				if (jogador->stats[0] > 0) { // Descarregamento por passos
+				if (jogador->stats[0] > 0 && jogador->stats[0] < 100) { // Descarregamento por passos
 					jogador->stats[0] -= 5; // -5% sobrecarga por passo
 					if (jogador->stats[0] <= 0) {
 						jogador->stats[0] = 0;
@@ -586,7 +602,7 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 				}
 
 				if (jogador->vida > 0) { // Descarregamento por passos
-					jogador->vida += 5; // -5% sobrecarga por passo
+					jogador->vida += 5; // +5 vida por passo
 					if (jogador->vida >= jogador->vidaMaxima) {
 						jogador->vida = jogador->vidaMaxima;
 					}
@@ -607,46 +623,46 @@ void jogarFase(Jogador* jogador, Fase* fase);
 
 void escolhaSaque(Jogador* jogador, Inimigo* inimigo) {
 	LimparTela();
-	Display("Item encontrado", 50, 10, false, 10, false, true);
-	Display(inimigo->arma->nome + " de " + inimigo->nome + " parece ainda funcionar, substituir arma atual?", 50, 11, false, 10, false, true);
+	Display("Item encontrado", 50, 10, 10, false, true);
+	Display(inimigo->arma->nome + " de " + inimigo->nome + " parece ainda funcionar, substituir arma atual?", 50, 11, 10, false, true);
 
-	Display("Sua arma: " + jogador->arma->nome, 15, 13, false, 10);
-	Display("Dano minimo: " + to_string(jogador->arma->dano_minimo), 15, 14, false, 10);
-	Display("Dano maximo (sem crits): " + to_string(jogador->arma->dano_maximo), 15, 15, false, 10);
-	Display("Destreza bonus: " + to_string(jogador->arma->stats[0]), 15, 16, false, 10);
-	Display("Critico bonus: " + to_string(jogador->arma->stats[1]), 15, 17, false, 10);
-	Display("Dodge bonus: " + to_string(jogador->arma->stats[2]), 15, 18, false, 10);
+	Display("Sua arma: " + jogador->arma->nome, 15, 13, 10);
+	Display("Dano minimo: " + to_string(jogador->arma->dano_minimo), 15, 14, 10);
+	Display("Dano maximo (sem crits): " + to_string(jogador->arma->dano_maximo), 15, 15, 10);
+	Display("Destreza bonus: " + to_string(jogador->arma->stats[0]), 15, 16, 10);
+	Display("Critico bonus: " + to_string(jogador->arma->stats[1]), 15, 17, 10);
+	Display("Dodge bonus: " + to_string(jogador->arma->stats[2]), 15, 18, 10);
 
 	if (jogador->arma->stats[3] > 0) {
-		Display("Multiplos ataques? SIM (" + to_string(jogador->arma->stats[3]) + ")", 15, 19, false, 10);
+		Display("Multiplos ataques? SIM (" + to_string(jogador->arma->stats[3]) + ")", 15, 19, 10);
 	}
 	else {
-		Display("Multiplos ataques? NAO", 15, 19, false, 10);
+		Display("Multiplos ataques? NAO", 15, 19, 10);
 	}
 
-	Display("Arma do inimigo: " + inimigo->arma->nome, 65, 13, false, 10);
-	Display("Dano minimo: " + to_string(inimigo->arma->dano_minimo), 65, 14, false, 10);
-	Display("Dano maximo (sem crits): " + to_string(inimigo->arma->dano_maximo), 65, 15, false, 10);
-	Display("Destreza bonus: " + to_string(inimigo->arma->stats[0]), 65, 16, false, 10);
-	Display("Critico bonus: " + to_string(inimigo->arma->stats[1]), 65, 17, false, 10);
-	Display("Dodge bonus: " + to_string(inimigo->arma->stats[2]), 65, 18, false, 10);
+	Display("Arma do inimigo: " + inimigo->arma->nome, 65, 13, 10);
+	Display("Dano minimo: " + to_string(inimigo->arma->dano_minimo), 65, 14, 10);
+	Display("Dano maximo (sem crits): " + to_string(inimigo->arma->dano_maximo), 65, 15, 10);
+	Display("Destreza bonus: " + to_string(inimigo->arma->stats[0]), 65, 16, 10);
+	Display("Critico bonus: " + to_string(inimigo->arma->stats[1]), 65, 17, 10);
+	Display("Dodge bonus: " + to_string(inimigo->arma->stats[2]), 65, 18, 10);
 
 	if (inimigo->arma->stats[3] > 0) {
-		Display("Multiplos ataques? SIM (" + to_string(inimigo->arma->stats[3]) + ")", 65, 19, false, 10);
+		Display("Multiplos ataques? SIM (" + to_string(inimigo->arma->stats[3]) + ")", 65, 19, 10);
 	}
 	else {
-		Display("Multiplos ataques? NAO", 65, 19, false, 10);
+		Display("Multiplos ataques? NAO", 65, 19, 10);
 	}
 
-	Display("1 - Sim", 50, 21, false, 10, false, true);
-	Display("2 - Nao", 50, 22, false, 10, false, true);
+	Display("1 - Sim", 50, 21, 10, false, true);
+	Display("2 - Nao", 50, 22, 10, false, true);
 	int escolha = 0;
 	while (escolha <= 0) {
 		if (escolha == -1) {
-			Display("Opcao invalida! ", 50, 25, false, 4, true, true);
+			Display("Opcao invalida! ", 50, 25, 4, true, true);
 		}
-		Display("                                    ", 50, 24, false, 10, true, true);
-		Display("Opcao Escolhida: ", 50, 24, false, 10, true, true);
+		Display("                                    ", 50, 24, 10, true, true);
+		Display("Opcao Escolhida: ", 50, 24, 10, true, true);
 		cin >> escolha;
 
 		if (VerificarOpcao(escolha, 1, 2)) {
@@ -662,8 +678,8 @@ void escolhaSaque(Jogador* jogador, Inimigo* inimigo) {
 
 void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	// LOG DE COMBATE
-	Display("LOG DE COMBATE:", 100, 0, false, 10, false, true);
-	Display("Voce encontrou " + inimigo->nome, 100, 1, false, 10, false, true);
+	Display("LOG DE COMBATE:", 100, 0, 10, false, true);
+	Display("Voce encontrou " + inimigo->nome, 100, 1, 10, false, true);
 	int Ylog = 2;
 
 	while (morreu(jogador) == false && morreu(inimigo) == false) {
@@ -695,44 +711,44 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 		}
 
 		// DISPLAY DE INFORMAÇÕES DO PERSONAGEM
-		Display("Relatorio de integridade:", 50, 23, false, 10);
+		Display("Relatorio de integridade:", 50, 23, 10);
 
 		if (jogador->vida > jogador->vidaMaxima / 2) {
-			Display("Vida: " + to_string(jogador->vida), 50, 24, false, 10);
+			Display("Vida: " + to_string(jogador->vida), 50, 24, 10);
 		}
 		else {
-			Display("Vida: " + to_string(jogador->vida) + "(PERIGO!)", 50, 24, false, 4);
+			Display("Vida: " + to_string(jogador->vida) + "(PERIGO!)", 50, 24, 4);
 		}
 		
 
 		if (jogador->stats[0] >= 50) { // Sobrecarga
 			if (jogador->stats[0] >= 75) {
 				if (jogador->stats[0] >= 100) {
-					Display("Sobrecarga: ERRO (CIBERPSICOSE DETECTADA)", 50, 25, false, 4);
+					Display("Sobrecarga: CIBERPSICOSE", 50, 25, 4);
 				}
 				else {
-					Display("Sobrecarga: " + to_string(jogador->stats[0]) + "% (PERIGO)", 50, 25, false, 4);
+					Display("Sobrecarga: " + to_string(jogador->stats[0]) + "% (PERIGO)", 50, 25, 4);
 				}
 
 			}
 			else {
-				Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 25, false, 14);
+				Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 25, 14);
 			}
 		}
 		else {
-			Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 25, false, 10);
+			Display("Sobrecarga: " + to_string(jogador->stats[0]) + "%", 50, 25, 10);
 		}
 
 		if (jogador->stats[2] > 0) { // Sandevistan status
-			Display("Sandevistan ativo! (" + to_string(jogador->stats[2]) + ")", 50, 26, false, 10);
+			Display("Sandevistan ativo! (" + to_string(jogador->stats[2]) + ")", 50, 26, 10);
 		}
 
 		if (jogador->stats[3] > 0) { // Imp. Curativo status
-			Display("Regeneracao em progresso (" + to_string(jogador->stats[3]) + ")", 50, 27, false, 10);
+			Display("Regeneracao em progresso (" + to_string(jogador->stats[3]) + ")", 50, 27, 10);
 		}
 
 		if (jogador->stats[4] > 0) { // Kiroshi Optic status
-			Display("Assistencia de mira em uso!", 50, 28, false, 10);
+			Display("Assistencia de mira em uso!", 50, 28, 10);
 		}
 
 		int escolha = 0;
@@ -741,15 +757,15 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			while (escolha <= 0) {
 				LimparTela(3);
 				if (escolha == -1) {
-					Display("Opcao invalida!", 1, 29, false, 4);
+					Display("Opcao invalida!", 1, 29, 4);
 				}
 
-				Display("O que fazer? [[Vida do inimigo: " + to_string(inimigo->vida) + "]]", 1, 23, false, 10);
-				Display("1 - Atacar", 1, 24, false, 10);
-				Display("2 - Bloquear", 1, 25, false, 10);
-				Display("3 - Usar Implante", 1, 26, false, 10);
-				Display("                                               ", 1, 28, false);
-				Display("Opcao Escolhida: ", 1, 28, false, 10, true);
+				Display("O que fazer? [[Vida do inimigo: " + to_string(inimigo->vida) + "]]", 1, 23, 10);
+				Display("1 - Atacar", 1, 24, 10);
+				Display("2 - Bloquear", 1, 25, 10);
+				Display("3 - Usar Implante", 1, 26, 10);
+				Display("                                               ", 1, 28);
+				Display("Opcao Escolhida: ", 1, 28, 10, true);
 				LimparInputBuffer();
 				cin >> escolhaAux;
 				if (VerificarOpcao(escolhaAux, 1, 3)) {
@@ -759,13 +775,13 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 					}
 					else { // Abrir menu de implantes
 						LimparTela(3);
-						Display("Escolha um implante:", 1, 23, false, 10);
-						Display("1 - Sandevistan (varias acoes no mesmo turno)", 1, 24, false, 10);
-						Display("2 - Imp. Regenerativo (20% cura por 2 turnos)", 1, 25, false, 10);
-						Display("3 - Kiroshi Opctics (Precisao aumentada)", 1, 26, false, 10);
-						Display("4 - Voltar", 1, 27, false, 10);
-						Display("                                               ", 1, 28, false);
-						Display("Opcao Escolhida: ", 1, 28, false, 10, true);
+						Display("Escolha um implante:", 1, 23, 10);
+						Display("1 - Sandevistan (varias acoes) (" + to_string(custoSandevistan) + "%)", 1, 24, 10);
+						Display("2 - Imp. Regenerativo (+20%HP, 2 turnos) (" + to_string(custoImpReg) + "%)", 1, 25, 10);
+						Display("3 - Kiroshi Opctics (Precisao aumentada) (" + to_string(custoKiroshiOptics) + "%)", 1, 26, 10);
+						Display("4 - Voltar", 1, 27, 10);
+						Display("                                               ", 1, 28);
+						Display("Opcao Escolhida: ", 1, 28, 10, true);
 						LimparInputBuffer();
 						cin >> escolhaAux;
 						if (VerificarOpcao(escolhaAux, 1, 3)) {
@@ -778,88 +794,123 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 				}
 			}
 
-			if (Ylog > 20) {
-				Ylog = 1;
-				LimparTela(2);
+			
+		}
+		else { // Ciberpsicose, combate automatico
+			escolhaAux = RNG(1, 3);
+
+			if (VerificarOpcao(escolhaAux, 1, 2)) { // Escolhas Principais
+				escolha = escolhaAux;
 			}
+			else { // Escolha de implante
+				escolhaAux = RNG(1, 3);
+				escolha = 10 + escolhaAux;
+			}
+		}
 
-			switch (escolha)
-			{
-			case 1: // Ataque
-				if (jogador->stats[1] + jogador->arma->stats[0] > inimigo->stats[0]) {
-					
-					ataque(jogador, inimigo, Ylog);
-					if (jogador->stats[2] <= 0) { // Sandevistan check
-						ataque(inimigo, jogador, Ylog);
-					}
-					
-				}
-				else {
-					if (jogador->stats[2] <= 0) { // Sandevistan check
-						ataque(inimigo, jogador, Ylog);
-					}
-					ataque(jogador, inimigo, Ylog);
-				}
-				break;
+		if (Ylog > 20) {
+			Ylog = 1;
+			LimparTela(2);
+		}
 
-			case 2: // Bloquear
-				jogador->stats[5] = RNG(5, 20); // Conceder overshield aleatório
-				Display("Voce ativou OverS. (" + to_string(jogador->stats[5]) + "dmg DEF)", 100, Ylog, false, 10, false, true);
-				Ylog++;
-				ataque(inimigo, jogador, Ylog, true);
-				break;
+		switch (escolha)
+		{
+		case 1: // Ataque
+			if (jogador->stats[1] + jogador->arma->stats[0] > inimigo->stats[0]) {
 
-			case 11:
-				Display("Voce usou o Sandevistan!", 100, Ylog, false, 10, false, true);
-				Ylog++;
-				jogador->stats[2] = 3; // Sandevistan = +2 ações + ação atual
-				jogador->stats[0] += 35; // + Sobrecarga
-				break;
-
-			case 12:
-				Display("Voce usou o I. Regenerativo!", 100, Ylog, false, 10, false, true);
-				Ylog++;
-				jogador->stats[3] = 2; // Implante renegerativo = 2 turnos de cura
-				jogador->stats[0] += 20; // + Sobrecarga - 10
-
+				ataque(jogador, inimigo, Ylog);
 				if (jogador->stats[2] <= 0) { // Sandevistan check
 					ataque(inimigo, jogador, Ylog);
 				}
-				break;
 
-			case 13:
-				Display("Voce usou o Kiroshi Opctics!", 100, Ylog, false, 10, false, true);
-				Ylog++;
-				jogador->stats[4] = 2; // Kiroshi Optics = Prox. Turno c/ precisão aumentada
-				jogador->stats[0] += 25; // + Sobrecarga - 10
-
+			}
+			else {
 				if (jogador->stats[2] <= 0) { // Sandevistan check
 					ataque(inimigo, jogador, Ylog);
 				}
-				break;
-
-			default:
-				break;
+				ataque(jogador, inimigo, Ylog);
 			}
-		}
-		else {
+			break;
 
+		case 2: // Bloquear
+			jogador->stats[5] = RNG(5, 20); // Conceder overshield aleatório
+			Display("Voce ativou OverS. (" + to_string(jogador->stats[5]) + "dmg DEF)", 100, Ylog, 10, false, true);
+			Ylog++;
+			if (jogador->stats[2] <= 0) { // Sandevistan check
+				ataque(inimigo, jogador, Ylog);
+			}
+			break;
+
+		case 11:
+			Display("Voce usou o Sandevistan!", 100, Ylog, 10, false, true);
+			Ylog++;
+			jogador->stats[2] = 3; // Sandevistan = +2 ações + ação atual
+			if (jogador->stats[0] < 100) {
+				jogador->stats[0] += custoSandevistan; // + Sobrecarga
+			}
+			else {
+				jogador->vida -= custoSandevistan; // Perca de vida por ciberpsicose
+			}
+			break;
+
+		case 12:
+			Display("Voce usou o I. Regenerativo!", 100, Ylog, 10, false, true);
+			Ylog++;
+			jogador->stats[3] = 2; // Implante renegerativo = 2 turnos de cura
+			
+			if (jogador->stats[0] < 100) {
+				jogador->stats[0] += custoImpReg; // + Sobrecarga - 10
+			}
+			else {
+				jogador->vida -= custoImpReg; // Perca de vida por ciberpsicose
+			}
+
+			if (jogador->stats[2] <= 0) { // Sandevistan check
+				ataque(inimigo, jogador, Ylog);
+			}
+			break;
+
+		case 13:
+			Display("Voce usou o Kiroshi Opctics!", 100, Ylog, 10, false, true);
+			Ylog++;
+			jogador->stats[4] = 2; // Kiroshi Optics = Prox. Turno c/ precisão aumentada
+			jogador->stats[0] += custoKiroshiOptics; // + Sobrecarga - 10
+
+			if (jogador->stats[0] < 100) {
+				jogador->stats[0] += custoKiroshiOptics; // + Sobrecarga - 10
+			}
+			else {
+				jogador->vida -= custoKiroshiOptics; // Perca de vida por ciberpsicose
+			}
+
+			if (jogador->stats[2] <= 0) { // Sandevistan check
+				ataque(inimigo, jogador, Ylog);
+			}
+			break;
+
+		default:
+			break;
 		}
+		Sleep(10);
 	}
 
 	LimparTela(1);
-	if (morreu(inimigo)) {
-		Display("Voce" + jogador->arma->killMsg + inimigo->nome, 1, 23, false, 10);
+	if (morreu(inimigo) && morreu(jogador) == false) {
+		Display("Voce" + jogador->arma->killMsg + inimigo->nome, 1, 23, 10);
+		// Remove todos os buffs de implantes, combate acabou
+		jogador->stats[2] = 0; // -Sandevistan
+		jogador->stats[3] = 0; // -Implante Regenerativo
+		jogador->stats[4] = 0; // -Kiroshi Optics
 	}
 	else {
-		Display(inimigo->nome + inimigo->arma->killMsg + "voce", 1, 23, false, 10);
+		Display(inimigo->nome + inimigo->arma->killMsg + "voce", 1, 23, 10);
 	}
-	Display("Aperte qualquer tecla p/ continuar", 1, 24, false, 160);
+	Display("Aperte qualquer tecla p/ continuar", 1, 24, 160);
 	LimparCores();
 	LimparInputBuffer();
 	EsperarInput();
 
-	if (morreu(inimigo) && jogador->arma != inimigo->arma && inimigo->arma->nome != "Punhos" && RNG(0,2) == 1) {
+	if (morreu(inimigo) && morreu(jogador) == false && jogador->arma != inimigo->arma && inimigo->arma->nome != "Punhos" && RNG(0, 2) == 1) {
 		escolhaSaque(jogador, inimigo);
 	}
 }
@@ -875,51 +926,95 @@ int main()
 	int alturaFases[3] = { 10,5,15 };
 	int larguraFases[3] = { 20,30,40 };
 	int quantidadeInimigos[3] = { RNG(1, 5), RNG(1, 5), RNG(1, 5) };
+	bool gameLoop = true;
 	////////////////////
 
-	Carregar_Menu();
-	LimparInputBuffer();
-	EsperarInput();
-	LimparTela();
-
-	Carregar_Tutorial();
-	LimparInputBuffer();
-	EsperarInput();
-
-	//Jogador* jogador = GerarJogador(&armas[0]); // Jogador no soco
-	Jogador* jogador = GerarJogador(&armas[4]); // Jogador de minigun
-	for (int levelId = 0; levelId < 3; levelId++) {
+	while (gameLoop == true) {
+		gameLoop = false;
 		LimparTela();
-		Display("Criando " + nomeFases[levelId], 50, 10, false, 10, false, true);
-		Sleep(1500);
-		int numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
-		Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
-		Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
-		Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
+		Carregar_Menu();
+		LimparInputBuffer();
+		EsperarInput();
+		LimparTela();
 
-		Display("Gerando jogador", 50, 14, false, 10, false, true);
+		Carregar_Tutorial();
+		LimparInputBuffer();
+		EsperarInput();
 
-		while (jogador->posicao[0] == -1) {
-			int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
-			if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
-				if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
-					// Espaço livre, sem inimigos
-					jogador->posicao[0] = localEscolhido[0]; // Posicionar Y
-					jogador->posicao[1] = localEscolhido[1]; // Posicionar X
+		//Jogador* jogador = GerarJogador(&armas[0]); // Jogador no soco
+		Jogador* jogador = GerarJogador(&armas[4]); // Jogador de minigun
+		for (int levelId = 0; levelId < 1; levelId++) {
+			LimparTela();
+			Display("Criando " + nomeFases[levelId], 50, 10, 10, false, true);
+			Sleep(500);
+			int numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
+			if (jogador->stats[0] >= 100) { // Dobro em caso de ciberpsicopatia
+				numInimigos *= 2;
+			}
+			Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
+			Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
+			Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
+
+			Display("Gerando jogador", 50, 14, 10, false, true);
+
+			while (jogador->posicao[0] == -1) {
+				int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
+				if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
+					if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
+						// Espaço livre, sem inimigos
+						jogador->posicao[0] = localEscolhido[0]; // Posicionar Y
+						jogador->posicao[1] = localEscolhido[1]; // Posicionar X
+					}
 				}
 			}
+			LimparTela();
+			DisplayFase(fase, jogador);
+			LimparInputBuffer();
+			jogarFase(jogador, fase);
+			delete[] inimigosEscolhidos;
+			delete[] inimigosPreset;
+			for (int i = 0; i < fase->mapa.A; i++) {
+				delete[] fase->mapa.blocos[i];
+			}
+			if (fase->ganhou == false) {
+				levelId = 999; // Encerramento do for loop, game over!
+			}
+			delete fase;
+			jogador->posicao[0] = -1;
 		}
+
 		LimparTela();
-		DisplayFase(fase, jogador);
-		LimparInputBuffer();
-		jogarFase(jogador, fase);
-		delete[] inimigosEscolhidos;
-		delete[] inimigosPreset;
-		for (int i = 0; i < fase->mapa.A; i++) {
-			delete[] fase->mapa.blocos[i];
+		if (jogador->vida > 0) { // Venceu o game
+			Display("Parabens!", 50, 1, 10, false, true);
+			Display("Voce derrotou Adam Smasher e provou-se digno de Night City", 50, 2, 10, false, true);
 		}
-		delete fase;
-		jogador->posicao[0] = -1;
+		else { // Game over
+			Display("Game over!", 50, 1, 10, false, true);
+		}
+
+		Display("Deseja voltar ao menu ou encerrar o jogo?", 50, 4, 10, false, true);
+		Display("1 - Voltar ao menu", 50, 5, 10, false, true);
+		Display("2 - Fechar jogo", 50, 6, 10, false, true);
+		int escolhaGameLoop = 0;
+		while (VerificarOpcao(escolhaGameLoop, 1, 2) == false) {
+			if (escolhaGameLoop == -1) {
+				Display("Opcao invalida!", 50, 9, 4, false, true);
+			}
+			Display("                   ", 50, 8, 7, true, true);
+			Display("", 50, 8, 10, true, true);
+			cin >> escolhaGameLoop;
+			if (VerificarOpcao(escolhaGameLoop, 1, 2) == false) {
+				escolhaGameLoop = -1;
+			}
+		}
+		
+		if (escolhaGameLoop == 1) { // Voltar ao menu e continuar execução
+			gameLoop = true;
+		}
+		else {
+			LimparTela();
+		}
+		delete jogador;
 	}
 }
 
@@ -970,14 +1065,14 @@ void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 			}
 
 			if (crit < 10) {
-				Display("Voce" + atacante->arma->descricaoAttk + defensor->nome + " (-" + to_string(dano) + "HP)", 100, Ylog, false, 10, false, true);
+				Display("Voce" + atacante->arma->descricaoAttk + defensor->nome + " (-" + to_string(dano) + "HP)", 100, Ylog, 10, false, true);
 			}
 			else {
-				Display("Voce" + atacante->arma->descricaoAttk + defensor->nome + " (-" + to_string(dano) + "HP!)", 100, Ylog, false, 10, false, true);
+				Display("Voce" + atacante->arma->descricaoAttk + defensor->nome + " (-" + to_string(dano) + "HP!)", 100, Ylog, 10, false, true);
 			}
 		}
 		else {
-			Display("Voce errou!", 100, Ylog, false, 10, false, true);
+			Display("Voce errou!", 100, Ylog, 10, false, true);
 		}
 		Ylog++;
 		Sleep(100);
@@ -1004,13 +1099,13 @@ void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando)
 		}
 
 		if (defensor->stats[5] > 0) {
-			Display("Bloqueado " + to_string(danoOriginal) + "dmg", 100, Ylog, false, 10, false, true);
+			Display("Bloqueado " + to_string(danoOriginal) + "dmg", 100, Ylog, 10, false, true);
 			Ylog++;
 		}
 		else {
 			if (overshieldDestruido == false && bloqueando) {
 				overshieldDestruido = true;
-				Display("Overshield quebrou!", 100, Ylog, false, 10, false, true);
+				Display("Overshield quebrou!", 100, Ylog, 10, false, true);
 				Ylog++;
 			}
 		}
@@ -1027,14 +1122,14 @@ void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando)
 			}
 
 			if (crit < 10) {
-				Display(atacante->nome + atacante->arma->descricaoAttk + +"voce (-" + to_string(dano) + "HP)", 100, Ylog, false, 10, false, true);
+				Display(atacante->nome + atacante->arma->descricaoAttk + +"voce (-" + to_string(dano) + "HP)", 100, Ylog, 10, false, true);
 			}
 			else {
-				Display(atacante->nome + atacante->arma->descricaoAttk + "voce (-" + to_string(dano) + "HP!)", 100, Ylog, false, 10, false, true);
+				Display(atacante->nome + atacante->arma->descricaoAttk + "voce (-" + to_string(dano) + "HP!)", 100, Ylog, 10, false, true);
 			}
 		}
 		else {
-			Display(atacante->nome + " errou!", 100, Ylog, false, 10, false, true);
+			Display(atacante->nome + " errou!", 100, Ylog, 10, false, true);
 		}
 		Ylog++;
 		Sleep(100);
@@ -1050,7 +1145,7 @@ void jogarFase(Jogador* jogador, Fase* fase)
 		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo != NULL) {
 			// Inimigo encontrado, iniciar combate
 			LimparTela();
-			DisplayAnimation("Frames/CombatInitiation/", "Shatter_", 12, 7, 10, 2, 10);
+			DisplayAnimation("Frames/CombatInitiation/", "Shatter_", 12, 10, 4, 2, 10);
 			LimparTela();
 			iniciarCombate(jogador, fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo);
 			if (morreu(jogador) == false) {
