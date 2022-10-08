@@ -94,6 +94,7 @@ struct Fase
 	string nome;
 	Mapa mapa;
 	Inimigo inimigos[5];
+	int inimigosRestantes = 0;
 	bool ganhou = false;
 };
 
@@ -132,74 +133,74 @@ int Aproximacao(int valor) {
 Arma* GerarArmas() {
 	Arma* armas = new Arma[7];
 	armas[0].nome = "Punhos";
-	armas[0].descricaoAttk = " deu um soco em ";
+	armas[0].descricaoAttk = " socou ";
 	armas[0].killMsg = " saiu na pancadaria e venceu de ";
-	armas[0].dano_minimo = 3;
+	armas[0].dano_minimo = 4;
 	armas[0].dano_maximo = 7;
-	armas[0].stats[0] = 2; // Destreza
+	armas[0].stats[0] = 0; // Destreza
 	armas[0].stats[1] = 1; // Crit
-	armas[0].stats[2] = 3; // Dodge
-	armas[0].stats[3] = 0; // Multi-Shot
+	armas[0].stats[2] = 2; // Dodge
+	armas[0].stats[3] = 2; // Multi-Shot
 
 	armas[1].nome = "Gorilla Arms";
-	armas[1].descricaoAttk = " deu um socao em ";
+	armas[1].descricaoAttk = " espancou ";
 	armas[1].killMsg = " quebrou a mandibula de ";
-	armas[1].dano_minimo = 3;
-	armas[1].dano_maximo = 7;
+	armas[1].dano_minimo = 10;
+	armas[1].dano_maximo = 15;
 	armas[1].stats[0] = 0; // Destreza
-	armas[1].stats[1] = 3; // Crit
-	armas[1].stats[2] = -2; // Dodge
-	armas[1].stats[3] = 0; // Multi-Shot
+	armas[1].stats[1] = 2; // Crit
+	armas[1].stats[2] = 2; // Dodge
+	armas[1].stats[3] = 2; // Multi-Shot
 
 	armas[2].nome = "Mantis Blade";
-	armas[2].descricaoAttk = " deu um corte em ";
-	armas[2].killMsg = " desconectou a cabeca de ";
+	armas[2].descricaoAttk = " cortou ";
+	armas[2].killMsg = " multilou ";
 	armas[2].dano_minimo = 6;
 	armas[2].dano_maximo = 12;
-	armas[2].stats[0] = 2; // Destreza
-	armas[2].stats[1] = 4; // Crit
+	armas[2].stats[0] = 1; // Destreza
+	armas[2].stats[1] = 3; // Crit
 	armas[2].stats[2] = 3; // Dodge
-	armas[2].stats[3] = 2; // Multi-Shot
+	armas[2].stats[3] = 4; // Multi-Shot
 
 	armas[3].nome = "Rifle de assalto";
 	armas[3].descricaoAttk = " atirou em ";
 	armas[3].killMsg = " fuzilou ";
-	armas[3].dano_minimo = 10;
-	armas[3].dano_maximo = 15;
-	armas[3].stats[0] = 1; // Destreza
+	armas[3].dano_minimo = 5;
+	armas[3].dano_maximo = 9;
+	armas[3].stats[0] = -1; // Destreza
 	armas[3].stats[1] = 2; // Crit
 	armas[3].stats[2] = 1; // Dodge
 	armas[3].stats[3] = 4; // Multi-Shot
 
-	armas[4].nome = "Minigun";
+	armas[4].nome = "Metralhadora pesada";
 	armas[4].descricaoAttk = " atirou em ";
 	armas[4].killMsg = " aniquilou ";
-	armas[4].dano_minimo = 5;
-	armas[4].dano_maximo = 8;
-	armas[4].stats[0] = -1; // Destreza
-	armas[4].stats[1] = 2; // Crit
-	armas[4].stats[2] = -2; // Dodge
-	armas[4].stats[3] = 8; // Multi-Shot
+	armas[4].dano_minimo = 7;
+	armas[4].dano_maximo = 10;
+	armas[4].stats[0] = -4; // Destreza
+	armas[4].stats[1] = -1; // Crit
+	armas[4].stats[2] = -3; // Dodge
+	armas[4].stats[3] = 6; // Multi-Shot
 
 	armas[5].nome = "Pistola";
 	armas[5].descricaoAttk = " atirou em ";
 	armas[5].killMsg = " estorou o miolos de ";
-	armas[5].dano_minimo = 12;
-	armas[5].dano_maximo = 14;
-	armas[5].stats[0] = 2; // Destreza
-	armas[5].stats[1] = 2; // Crit
-	armas[5].stats[2] = 2; // Dodge
-	armas[5].stats[3] = 0; // Multi-Shot
+	armas[5].dano_minimo = 8;
+	armas[5].dano_maximo = 12;
+	armas[5].stats[0] = 1; // Destreza
+	armas[5].stats[1] = 1; // Crit
+	armas[5].stats[2] = 1; // Dodge
+	armas[5].stats[3] = 2; // Multi-Shot
 
 	armas[6].nome = "Revolver";
 	armas[6].descricaoAttk = " atirou em ";
 	armas[6].killMsg = " fez um que ota em ";
-	armas[6].dano_minimo = 5;
-	armas[6].dano_maximo = 20;
+	armas[6].dano_minimo = 17;
+	armas[6].dano_maximo = 24;
 	armas[6].stats[0] = 2; // Destreza
-	armas[6].stats[1] = 3; // Crit
-	armas[6].stats[2] = 2; // Dodge
-	armas[6].stats[3] = 0; // Multi-Shot
+	armas[6].stats[1] = 6; // Crit
+	armas[6].stats[2] = 3; // Dodge
+	armas[6].stats[3] = 1; // Multi-Shot
 	return armas;
 }
 
@@ -458,6 +459,7 @@ Mapa CriarMapa(int A, int L) {
 Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa, int larguraMapa) {
 	Fase* fase = new Fase;
 	fase->nome = nome;
+	fase->inimigosRestantes = numInimigos;
 	Display("Gerando mapa", 50, 11, false, 10, false, true);
 	fase->mapa = CriarMapa(alturaMapa, larguraMapa);
 	Display("Gerando obstaculos", 50, 12, false, 10, false, true);
@@ -575,6 +577,20 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 				jogador->posicao[1] = novaPosicao[1];
 				Display("#", novaPosicaoTela.X, novaPosicaoTela.Y, false, corJogador);
 				jogador->posicaoTela = novaPosicaoTela;
+
+				if (jogador->stats[0] > 0) { // Descarregamento por passos
+					jogador->stats[0] -= 5; // -5% sobrecarga por passo
+					if (jogador->stats[0] <= 0) {
+						jogador->stats[0] = 0;
+					}
+				}
+
+				if (jogador->vida > 0) { // Descarregamento por passos
+					jogador->vida += 5; // -5% sobrecarga por passo
+					if (jogador->vida >= jogador->vidaMaxima) {
+						jogador->vida = jogador->vidaMaxima;
+					}
+				}
 			}
 		}
 	}
@@ -589,14 +605,69 @@ void ataque(Inimigo* atacante, Jogador* defensor, int &Ylog, bool bloqueando = f
 
 void jogarFase(Jogador* jogador, Fase* fase);
 
+void escolhaSaque(Jogador* jogador, Inimigo* inimigo) {
+	LimparTela();
+	Display("Item encontrado", 50, 10, false, 10, false, true);
+	Display(inimigo->arma->nome + " de " + inimigo->nome + " parece ainda funcionar, substituir arma atual?", 50, 11, false, 10, false, true);
+
+	Display("Sua arma: " + jogador->arma->nome, 15, 13, false, 10);
+	Display("Dano minimo: " + to_string(jogador->arma->dano_minimo), 15, 14, false, 10);
+	Display("Dano maximo (sem crits): " + to_string(jogador->arma->dano_maximo), 15, 15, false, 10);
+	Display("Destreza bonus: " + to_string(jogador->arma->stats[0]), 15, 16, false, 10);
+	Display("Critico bonus: " + to_string(jogador->arma->stats[1]), 15, 17, false, 10);
+	Display("Dodge bonus: " + to_string(jogador->arma->stats[2]), 15, 18, false, 10);
+
+	if (jogador->arma->stats[3] > 0) {
+		Display("Multiplos ataques? SIM (" + to_string(jogador->arma->stats[3]) + ")", 15, 19, false, 10);
+	}
+	else {
+		Display("Multiplos ataques? NAO", 15, 19, false, 10);
+	}
+
+	Display("Arma do inimigo: " + inimigo->arma->nome, 65, 13, false, 10);
+	Display("Dano minimo: " + to_string(inimigo->arma->dano_minimo), 65, 14, false, 10);
+	Display("Dano maximo (sem crits): " + to_string(inimigo->arma->dano_maximo), 65, 15, false, 10);
+	Display("Destreza bonus: " + to_string(inimigo->arma->stats[0]), 65, 16, false, 10);
+	Display("Critico bonus: " + to_string(inimigo->arma->stats[1]), 65, 17, false, 10);
+	Display("Dodge bonus: " + to_string(inimigo->arma->stats[2]), 65, 18, false, 10);
+
+	if (inimigo->arma->stats[3] > 0) {
+		Display("Multiplos ataques? SIM (" + to_string(inimigo->arma->stats[3]) + ")", 65, 19, false, 10);
+	}
+	else {
+		Display("Multiplos ataques? NAO", 65, 19, false, 10);
+	}
+
+	Display("1 - Sim", 50, 21, false, 10, false, true);
+	Display("2 - Nao", 50, 22, false, 10, false, true);
+	int escolha = 0;
+	while (escolha <= 0) {
+		if (escolha == -1) {
+			Display("Opcao invalida! ", 50, 25, false, 4, true, true);
+		}
+		Display("                                    ", 50, 24, false, 10, true, true);
+		Display("Opcao Escolhida: ", 50, 24, false, 10, true, true);
+		cin >> escolha;
+
+		if (VerificarOpcao(escolha, 1, 2)) {
+			if (escolha == 1) { // Trocar de arma
+				jogador->arma = inimigo->arma;
+			}
+		}
+		else {
+			escolha = -1;
+		}
+	}
+}
+
 void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
-	DisplayAnimation("Frames/Enemies/", inimigo->spriteFile, -1, inimigo->spriteColor, 0, 0);
 	// LOG DE COMBATE
 	Display("LOG DE COMBATE:", 100, 0, false, 10, false, true);
 	Display("Voce encontrou " + inimigo->nome, 100, 1, false, 10, false, true);
 	int Ylog = 2;
 
 	while (morreu(jogador) == false && morreu(inimigo) == false) {
+		DisplayAnimation("Frames/Enemies/", inimigo->spriteFile, -1, inimigo->spriteColor, 0, 0);
 		LimparTela(1);
 
 		if (jogador->stats[2] > 0) { // Sandevistan countdown
@@ -625,7 +696,14 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 
 		// DISPLAY DE INFORMAÇÕES DO PERSONAGEM
 		Display("Relatorio de integridade:", 50, 23, false, 10);
-		Display("Vida: " + to_string(jogador->vida) + "    ", 50, 24, false, 10);
+
+		if (jogador->vida > jogador->vidaMaxima / 2) {
+			Display("Vida: " + to_string(jogador->vida), 50, 24, false, 10);
+		}
+		else {
+			Display("Vida: " + to_string(jogador->vida) + "(PERIGO!)", 50, 24, false, 4);
+		}
+		
 
 		if (jogador->stats[0] >= 50) { // Sobrecarga
 			if (jogador->stats[0] >= 75) {
@@ -780,6 +858,10 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	LimparCores();
 	LimparInputBuffer();
 	EsperarInput();
+
+	if (morreu(inimigo) && jogador->arma != inimigo->arma && inimigo->arma->nome != "Punhos" && RNG(0,2) == 1) {
+		escolhaSaque(jogador, inimigo);
+	}
 }
 
 int main()
@@ -793,11 +875,6 @@ int main()
 	int alturaFases[3] = { 10,5,15 };
 	int larguraFases[3] = { 20,30,40 };
 	int quantidadeInimigos[3] = { RNG(1, 5), RNG(1, 5), RNG(1, 5) };
-	Inimigo** inimigos_Matriz = new Inimigo * [3];
-
-	for (int i = 0; i < 3; i++) {
-		inimigos_Matriz[i] = new Inimigo[3];
-	}
 	////////////////////
 
 	Carregar_Menu();
@@ -809,17 +886,18 @@ int main()
 	LimparInputBuffer();
 	EsperarInput();
 
+	//Jogador* jogador = GerarJogador(&armas[0]); // Jogador no soco
+	Jogador* jogador = GerarJogador(&armas[4]); // Jogador de minigun
 	for (int levelId = 0; levelId < 3; levelId++) {
 		LimparTela();
 		Display("Criando " + nomeFases[levelId], 50, 10, false, 10, false, true);
+		Sleep(1500);
 		int numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
 		Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
 		Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
 		Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
 
 		Display("Gerando jogador", 50, 14, false, 10, false, true);
-		Jogador* jogador = GerarJogador(&armas[0]); // Jogador no soco
-		//Jogador* jogador = GerarJogador(&armas[4]); // Jogador de minigun
 
 		while (jogador->posicao[0] == -1) {
 			int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
@@ -835,6 +913,13 @@ int main()
 		DisplayFase(fase, jogador);
 		LimparInputBuffer();
 		jogarFase(jogador, fase);
+		delete[] inimigosEscolhidos;
+		delete[] inimigosPreset;
+		for (int i = 0; i < fase->mapa.A; i++) {
+			delete[] fase->mapa.blocos[i];
+		}
+		delete fase;
+		jogador->posicao[0] = -1;
 	}
 }
 
@@ -869,6 +954,7 @@ void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 			acertou = 10; // Se sandevistan ativo e inimigo não tem sandevistan, acertou!
 		} 
 		if (acertou >= 10) { // Alvo acertado
+			DisplayAnimation("Frames/Enemies/", defensor->spriteFile, -1, 4, 0, 0);
 			int crit = RNG(1 + atacante->arma->stats[1], 20); // 1 + Crit bonus arma
 
 			if (atacante->stats[4]) {
@@ -964,9 +1050,19 @@ void jogarFase(Jogador* jogador, Fase* fase)
 		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo != NULL) {
 			// Inimigo encontrado, iniciar combate
 			LimparTela();
-			DisplayAnimation("Frames/CombatInitiation/", "Combat_", 12, 7, 10, 2, 10);
+			DisplayAnimation("Frames/CombatInitiation/", "Shatter_", 12, 7, 10, 2, 10);
 			LimparTela();
 			iniciarCombate(jogador, fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo);
+			if (morreu(jogador) == false) {
+				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo = NULL;
+				fase->inimigosRestantes--;
+				if (fase->inimigosRestantes <= 0) {
+					fase->ganhou = true;
+				}
+				LimparTela();
+				DisplayFase(fase, jogador);
+				LimparInputBuffer();
+			}
 		}
 	}
 }
