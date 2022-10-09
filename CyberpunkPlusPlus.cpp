@@ -43,7 +43,6 @@ struct Arma
 
 struct Jogador
 {
-	int nivel = 0;
 	int vida;
 	int vidaMaxima = 100;
 	Arma* arma;
