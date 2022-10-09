@@ -85,6 +85,7 @@ struct Inimigo
 struct Bloco
 {
 	bool bloqueado = false;
+	bool temInimigo = false;
 	Inimigo* inimigo = NULL;
 };
 
@@ -519,7 +520,7 @@ void Carregar_Tutorial() {
 	Display(" ", 20, 14, corObstaculo);
 	Display("<--- Parede", 30, 14, 7, false, true);
 
-	Display("Use as teclas WASD para se movimentar pelo mapa", 50, 23, 7, false, true);
+	Display("Use as teclas WASD para se movimentar pelo mapa (Incluindo diagonalmente)", 50, 23, 7, false, true);
 	Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, 7, false, true);
 	Sleep(1000);
 	Display("Aperte qualquer tecla para comecar", 50, 27, 160, false, true);
@@ -564,6 +565,16 @@ Mapa CriarMapa(int A, int L) {
 		mapa.blocos[i] = new Bloco[L];
 	}
 
+	Display("Gerando obstaculos", 50, 12, 10, false, true);
+	for (int i = 0; i < A; i++) {
+		for (int j = 0; j < L; j++) {
+			int temObstaculo = RNG(1, 10);
+			if (temObstaculo <= 2) {
+				mapa.blocos[i][j].bloqueado = true;
+			}
+		}
+	}
+
 	return mapa;
 }
 
@@ -573,19 +584,6 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 	fase->inimigosRestantes = numInimigos;
 	Display("Gerando mapa", 50, 11, 10, false, true);
 	fase->mapa = CriarMapa(alturaMapa, larguraMapa);
-	Display("Gerando obstaculos", 50, 12, 10, false, true);
-	int quantObstaculos = (alturaMapa / 4 + larguraMapa / 4);
-	Aproximacao(quantObstaculos);
-
-	for (int i = 0; i < quantObstaculos;) { // For loop sem incremento automatico
-		int localEscolhido[2] = { RNG(0, alturaMapa), RNG(0, larguraMapa) };
-		if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
-			if (VerificarCoord(fase, 1, localEscolhido) == false) { // Espaço está livre?
-				fase->mapa.blocos[localEscolhido[0]][localEscolhido[1]].bloqueado = true;
-				i++;
-			}
-		}
-	}
 
 	Display("Gerando inimigos", 50, 13, 10, false, true);
 	for (int i = 0; i < numInimigos;) { // For loop sem incremento automatico
@@ -595,6 +593,7 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 			if (VerificarCoord(fase, 1, coordEscolhida) == false && VerificarCoord(fase, 2, coordEscolhida) == false) {
 				// Bloco livre, sem inimigos também
 				fase->mapa.blocos[coordEscolhida[0]][coordEscolhida[1]].inimigo = &inimigos[i];
+				fase->mapa.blocos[coordEscolhida[0]][coordEscolhida[1]].temInimigo = true;
 				i++;
 			}
 		}
@@ -1262,7 +1261,7 @@ void jogarFase(Jogador* jogador, Fase* fase)
 	while (morreu(jogador) == false && fase->ganhou == false)
 	{
 		Movimentar(jogador, fase);
-		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo != NULL) {
+		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].temInimigo) {
 			// Inimigo encontrado, iniciar combate
 			LimparTela();
 			DisplayAnimation("Frames/CombatInitiation/", "Shatter_", 12, 10, 4, 2, 10);
@@ -1270,6 +1269,7 @@ void jogarFase(Jogador* jogador, Fase* fase)
 			iniciarCombate(jogador, fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo);
 			if (morreu(jogador) == false) {
 				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo = NULL;
+				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].temInimigo = false;
 				fase->inimigosRestantes--;
 				if (fase->inimigosRestantes <= 0) {
 					fase->ganhou = true;
