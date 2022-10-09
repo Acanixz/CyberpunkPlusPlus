@@ -141,68 +141,68 @@ Arma* GerarArmas() {
 	armas[0].nome = "Punhos";
 	armas[0].descricaoAttk = " socou ";
 	armas[0].killMsg = " saiu na pancadaria e venceu de ";
-	armas[0].dano_minimo = 4;
-	armas[0].dano_maximo = 7;
+	armas[0].dano_minimo = 1;
+	armas[0].dano_maximo = 5;
 	armas[0].stats[0] = 0; // Destreza
 	armas[0].stats[1] = 1; // Crit
 	armas[0].stats[2] = 2; // Dodge
-	armas[0].stats[3] = 2; // Multi-Shot
+	armas[0].stats[3] = 1; // Multi-Shot
 
 	armas[1].nome = "Gorilla Arms";
 	armas[1].descricaoAttk = " espancou ";
 	armas[1].killMsg = " quebrou a mandibula de ";
-	armas[1].dano_minimo = 10;
-	armas[1].dano_maximo = 15;
+	armas[1].dano_minimo = 3;
+	armas[1].dano_maximo = 6;
 	armas[1].stats[0] = 0; // Destreza
 	armas[1].stats[1] = 2; // Crit
-	armas[1].stats[2] = 2; // Dodge
+	armas[1].stats[2] = 1; // Dodge
 	armas[1].stats[3] = 2; // Multi-Shot
 
 	armas[2].nome = "Mantis Blade";
 	armas[2].descricaoAttk = " cortou ";
 	armas[2].killMsg = " multilou ";
-	armas[2].dano_minimo = 6;
-	armas[2].dano_maximo = 12;
+	armas[2].dano_minimo = 2;
+	armas[2].dano_maximo = 4;
 	armas[2].stats[0] = 1; // Destreza
 	armas[2].stats[1] = 3; // Crit
 	armas[2].stats[2] = 3; // Dodge
-	armas[2].stats[3] = 4; // Multi-Shot
+	armas[2].stats[3] = 3; // Multi-Shot
 
 	armas[3].nome = "Rifle de assalto";
 	armas[3].descricaoAttk = " atirou em ";
 	armas[3].killMsg = " fuzilou ";
 	armas[3].dano_minimo = 5;
-	armas[3].dano_maximo = 9;
+	armas[3].dano_maximo = 8;
 	armas[3].stats[0] = -1; // Destreza
 	armas[3].stats[1] = 2; // Crit
 	armas[3].stats[2] = 1; // Dodge
-	armas[3].stats[3] = 4; // Multi-Shot
+	armas[3].stats[3] = 2; // Multi-Shot
 
 	armas[4].nome = "Metralhadora pesada";
 	armas[4].descricaoAttk = " atirou em ";
 	armas[4].killMsg = " aniquilou ";
-	armas[4].dano_minimo = 7;
-	armas[4].dano_maximo = 10;
+	armas[4].dano_minimo = 3;
+	armas[4].dano_maximo = 5;
 	armas[4].stats[0] = -4; // Destreza
 	armas[4].stats[1] = -1; // Crit
 	armas[4].stats[2] = -3; // Dodge
-	armas[4].stats[3] = 6; // Multi-Shot
+	armas[4].stats[3] = 4; // Multi-Shot
 
 	armas[5].nome = "Pistola";
 	armas[5].descricaoAttk = " atirou em ";
 	armas[5].killMsg = " estorou o miolos de ";
-	armas[5].dano_minimo = 8;
-	armas[5].dano_maximo = 12;
+	armas[5].dano_minimo = 5;
+	armas[5].dano_maximo = 7;
 	armas[5].stats[0] = 1; // Destreza
 	armas[5].stats[1] = 1; // Crit
 	armas[5].stats[2] = 1; // Dodge
-	armas[5].stats[3] = 2; // Multi-Shot
+	armas[5].stats[3] = 1; // Multi-Shot
 
 	armas[6].nome = "Revolver";
 	armas[6].descricaoAttk = " atirou em ";
 	armas[6].killMsg = " fez um que ota em ";
-	armas[6].dano_minimo = 17;
-	armas[6].dano_maximo = 24;
+	armas[6].dano_minimo = 4;
+	armas[6].dano_maximo = 10;
 	armas[6].stats[0] = 2; // Destreza
 	armas[6].stats[1] = 6; // Crit
 	armas[6].stats[2] = 3; // Dodge
@@ -223,7 +223,7 @@ Jogador* GerarJogador(Arma* arma) {
 }
 
 Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
-	Inimigo* inimigos = new Inimigo[3];
+	Inimigo* inimigos = new Inimigo[4];
 	switch (levelId)
 	{
 	case 0:
@@ -231,22 +231,125 @@ Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
 		inimigos[0].vidaMaxima = 30;
 		inimigos[0].vida = inimigos[0].vidaMaxima;
 		inimigos[0].arma = &listaArmas[RNG(0, 2)]; // Items 0-1
-		//inimigos[0].spriteFile = "Valentino_0.txt";
-		inimigos[0].spriteColor = 5;
+		inimigos[0].spriteFile = "Valentino.txt";
+		inimigos[0].spriteColor = 5; // Roxo
+		inimigos[0].stats[0] = 1; // Destreza
+		inimigos[0].stats[1] = 1; // Crit base
+		inimigos[0].stats[2] = 1; // Dodge base
 
 		inimigos[1].nome = "Valentino";
-		inimigos[1].vidaMaxima = 25;
+		inimigos[1].vidaMaxima = 20;
 		inimigos[1].vida = inimigos[1].vidaMaxima;
-		inimigos[1].arma = &listaArmas[3]; // Rifle de assalto
-		//inimigos[1].spriteFile = "Valentino_0.txt";
-		inimigos[1].spriteColor = 3;
+		inimigos[1].arma = &listaArmas[RNG(5, 2)]; // Items 5-6
+		inimigos[1].spriteFile = "Valentino.txt";
+		inimigos[1].spriteColor = 14; // Amarelo
+		inimigos[1].stats[0] = 1; // Destreza
+		inimigos[1].stats[1] = 1; // Crit base
+		inimigos[1].stats[2] = 1; // Dodge base
 
-		inimigos[2].nome = "Valentino";
-		inimigos[2].vidaMaxima = 20;
+		inimigos[2].nome = "Tyger Claw";
+		inimigos[2].vidaMaxima = 25;
 		inimigos[2].vida = inimigos[2].vidaMaxima;
-		inimigos[2].arma = &listaArmas[RNG(5, 2)]; // Items 5-6
-		//inimigos[2].spriteFile = "Valentino_0.txt";
-		inimigos[2].spriteColor = 14;
+		inimigos[2].arma = &listaArmas[3]; // Rifle de assalto
+		inimigos[2].spriteFile = "TygerClaw.txt";
+		inimigos[2].spriteColor = 3; // Azul
+		inimigos[2].stats[0] = 3; // Destreza
+		inimigos[2].stats[1] = 0; // Crit base
+		inimigos[2].stats[2] = 2; // Dodge base
+
+		inimigos[3].nome = "Tyger Claw";
+		inimigos[3].vidaMaxima = 30;
+		inimigos[3].vida = inimigos[3].vidaMaxima;
+		inimigos[3].arma = &listaArmas[2]; // Mantis Blade
+		inimigos[3].spriteFile = "TygerClaw.txt";
+		inimigos[3].spriteColor = 3; // Azul
+		inimigos[3].stats[0] = 3; // Destreza
+		inimigos[3].stats[1] = 0; // Crit base
+		inimigos[3].stats[2] = 2; // Dodge base
+		break;
+
+	case 1:
+		inimigos[0].nome = "Maelstrom";
+		inimigos[0].vidaMaxima = 30;
+		inimigos[0].vida = inimigos[0].vidaMaxima;
+		inimigos[0].arma = &listaArmas[RNG(0, 3)]; // Items 0-2
+		inimigos[0].spriteFile = "Maelstrom.txt";
+		inimigos[0].spriteColor = 15; // Cinza
+		inimigos[0].stats[0] = 1; // Destreza
+		inimigos[0].stats[1] = 2; // Crit base
+		inimigos[0].stats[2] = 1; // Dodge base
+
+		inimigos[1].nome = "Maelstrom";
+		inimigos[1].vidaMaxima = 35;
+		inimigos[1].vida = inimigos[1].vidaMaxima;
+		inimigos[1].arma = &listaArmas[RNG(5, 2)]; // Items 5-6
+		inimigos[1].spriteFile = "Maelstrom.txt";
+		inimigos[1].spriteColor = 12; // Carmesin
+		inimigos[1].stats[0] = 1; // Destreza
+		inimigos[1].stats[1] = 2; // Crit base
+		inimigos[1].stats[2] = 1; // Dodge base
+
+		inimigos[2].nome = "Animal";
+		inimigos[2].vidaMaxima = 35;
+		inimigos[2].vida = inimigos[2].vidaMaxima;
+		inimigos[2].arma = &listaArmas[3]; // Rifle de assalto
+		inimigos[2].spriteFile = "Animal.txt";
+		inimigos[2].spriteColor = 3; // Azul
+		inimigos[2].stats[0] = 2; // Destreza
+		inimigos[2].stats[1] = 1; // Crit base
+		inimigos[2].stats[2] = 3; // Dodge base
+
+		inimigos[3].nome = "Cyberpsycho";
+		inimigos[3].vidaMaxima = 50;
+		inimigos[3].vida = inimigos[3].vidaMaxima;
+		inimigos[3].arma = &listaArmas[RNG(0, 7)]; // Tudo
+		inimigos[3].spriteFile = "Cyberpsycho.txt";
+		inimigos[3].spriteColor = 3; // Azul
+		inimigos[3].stats[0] = -3; // Destreza
+		inimigos[3].stats[1] = 1; // Crit base
+		inimigos[3].stats[2] = 1; // Dodge base
+		break;
+
+	case 2:
+		inimigos[0].nome = "Max-Tac";
+		inimigos[0].vidaMaxima = 40;
+		inimigos[0].vida = inimigos[0].vidaMaxima;
+		inimigos[0].arma = &listaArmas[3]; // Rifle de assalto
+		inimigos[0].spriteFile = "MaxTac.txt";
+		inimigos[0].spriteColor = 11; // Ciano
+		inimigos[0].stats[0] = 2; // Destreza
+		inimigos[0].stats[1] = 2; // Crit base
+		inimigos[0].stats[2] = 2; // Dodge base
+
+		inimigos[1].nome = "Tril.-Redes";
+		inimigos[1].vidaMaxima = 35;
+		inimigos[1].vida = inimigos[1].vidaMaxima;
+		inimigos[1].arma = &listaArmas[3]; // Mantis blade
+		inimigos[1].spriteFile = "MaxTac.txt";
+		inimigos[1].spriteColor = 2; // Verde escuro
+		inimigos[1].stats[0] = -2; // Destreza
+		inimigos[1].stats[1] = 4; // Crit base
+		inimigos[1].stats[2] = -2; // Dodge base
+
+		inimigos[2].nome = "Cyberpsycho";
+		inimigos[2].vidaMaxima = 50;
+		inimigos[2].vida = inimigos[2].vidaMaxima;
+		inimigos[2].arma = &listaArmas[RNG(0, 7)]; // Tudo
+		inimigos[2].spriteFile = "Cyberpsycho.txt";
+		inimigos[2].spriteColor = 3; // Azul
+		inimigos[2].stats[0] = -3; // Destreza
+		inimigos[2].stats[1] = 1; // Crit base
+		inimigos[2].stats[2] = 1; // Dodge base
+
+		inimigos[3].nome = "Cyberpsycho";
+		inimigos[3].vidaMaxima = 50;
+		inimigos[3].vida = inimigos[3].vidaMaxima;
+		inimigos[3].arma = &listaArmas[RNG(0, 7)]; // Tudo
+		inimigos[3].spriteFile = "Cyberpsycho.txt";
+		inimigos[3].spriteColor = 3; // Azul
+		inimigos[3].stats[0] = -3; // Destreza
+		inimigos[3].stats[1] = 1; // Crit base
+		inimigos[3].stats[2] = 1; // Dodge base
 		break;
 	}
 	return inimigos;
@@ -633,7 +736,7 @@ void escolhaSaque(Jogador* jogador, Inimigo* inimigo) {
 	Display("Critico bonus: " + to_string(jogador->arma->stats[1]), 15, 17, 10);
 	Display("Dodge bonus: " + to_string(jogador->arma->stats[2]), 15, 18, 10);
 
-	if (jogador->arma->stats[3] > 0) {
+	if (jogador->arma->stats[3] > 1) {
 		Display("Multiplos ataques? SIM (" + to_string(jogador->arma->stats[3]) + ")", 15, 19, 10);
 	}
 	else {
@@ -647,7 +750,7 @@ void escolhaSaque(Jogador* jogador, Inimigo* inimigo) {
 	Display("Critico bonus: " + to_string(inimigo->arma->stats[1]), 65, 17, 10);
 	Display("Dodge bonus: " + to_string(inimigo->arma->stats[2]), 65, 18, 10);
 
-	if (inimigo->arma->stats[3] > 0) {
+	if (inimigo->arma->stats[3] > 1) {
 		Display("Multiplos ataques? SIM (" + to_string(inimigo->arma->stats[3]) + ")", 65, 19, 10);
 	}
 	else {
@@ -874,7 +977,6 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			Display("Voce usou o Kiroshi Opctics!", 100, Ylog, 10, false, true);
 			Ylog++;
 			jogador->stats[4] = 2; // Kiroshi Optics = Prox. Turno c/ precisão aumentada
-			jogador->stats[0] += custoKiroshiOptics; // + Sobrecarga - 10
 
 			if (jogador->stats[0] < 100) {
 				jogador->stats[0] += custoKiroshiOptics; // + Sobrecarga - 10
@@ -942,8 +1044,8 @@ int main()
 		EsperarInput();
 
 		//Jogador* jogador = GerarJogador(&armas[0]); // Jogador no soco
-		Jogador* jogador = GerarJogador(&armas[4]); // Jogador de minigun
-		for (int levelId = 0; levelId < 1; levelId++) {
+		Jogador* jogador = GerarJogador(&armas[0]); // Jogador teste
+		for (int levelId = 0; levelId < 3; levelId++) {
 			LimparTela();
 			Display("Criando " + nomeFases[levelId], 50, 10, 10, false, true);
 			Sleep(500);
@@ -984,6 +1086,25 @@ int main()
 		}
 
 		LimparTela();
+
+		if (jogador->vida > 0) { // Luta final
+			Inimigo* adam_Smasher = new Inimigo;
+			adam_Smasher->nome = "Adam Smasher";
+			adam_Smasher->vidaMaxima = 100;
+			adam_Smasher->vida = adam_Smasher->vidaMaxima;
+			adam_Smasher->arma = &armas[4]; // Metralhadora Pesada
+			adam_Smasher->spriteFile = "AdamSmasher.txt";
+			adam_Smasher->spriteColor = 12; // Vermelho
+			adam_Smasher->stats[0] = -3; // Destreza
+			adam_Smasher->stats[1] = 2; // Crit base
+			adam_Smasher->stats[2] = 2; // Dodge base
+
+			iniciarCombate(jogador, adam_Smasher);
+			delete adam_Smasher;
+		}
+
+		LimparTela();
+		
 		if (jogador->vida > 0) { // Venceu o game
 			Display("Parabens!", 50, 1, 10, false, true);
 			Display("Voce derrotou Adam Smasher e provou-se digno de Night City", 50, 2, 10, false, true);
@@ -1038,7 +1159,7 @@ void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 		totalTiros = 1;
 	}
 	for (int i = 0; i < totalTiros; i++) {
-		int dano = RNG(atacante->arma->dano_minimo, atacante->arma->dano_maximo - atacante->arma->dano_minimo);
+		int dano = RNG(atacante->arma->dano_minimo, atacante->arma->dano_maximo - atacante->arma->dano_minimo + 1);
 
 		int acertou = RNG(1 - defensor->stats[2], 20); // 1 - Dodge base inimigo
 		if (atacante->stats[4]) {
@@ -1057,7 +1178,7 @@ void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 			}
 
 			if (crit >= 10) {
-				dano *= 1.5;
+				dano *= 1.25;
 			}
 			defensor->vida -= dano;
 			if (defensor->vida < 0) {
@@ -1114,7 +1235,7 @@ void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando)
 			int crit = RNG(1 + atacante->stats[1], 20); // 1 + Crit base inimigo
 
 			if (crit >= 10) {
-				dano *= 1.5;
+				dano *= 1.25;
 			}
 			defensor->vida -= dano;
 			if (defensor->vida < 0) {
