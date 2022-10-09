@@ -1,13 +1,13 @@
 ﻿  CyberpunkPlusPlus.cpp
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(405,40): warning C4267: '=': conversão de 'size_t' para 'SHORT', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(476,77): warning C4305: 'argumento': truncamento de 'int' para 'bool'
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(805,41): warning C4244: '+=': conversão de 'double' para 'int', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1022,12): warning C4244: 'argumento': conversão de 'time_t' para 'unsigned int', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1180,13): warning C4244: '*=': conversão de 'double' para 'int', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1237,13): warning C4244: '*=': conversão de 'double' para 'int', possível perda de dados
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(421,40): warning C4267: '=': conversão de 'size_t' para 'SHORT', possível perda de dados
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(499,77): warning C4305: 'argumento': truncamento de 'int' para 'bool'
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(838,41): warning C4244: '+=': conversão de 'double' para 'int', possível perda de dados
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1064,12): warning C4244: 'argumento': conversão de 'time_t' para 'unsigned int', possível perda de dados
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1235,13): warning C4244: '*=': conversão de 'double' para 'int', possível perda de dados
+C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1292,13): warning C4244: '*=': conversão de 'double' para 'int', possível perda de dados
   Gerando código
-  2 of 535 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+  4 of 535 functions ( 0.7%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    4 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   Finalizada a geração de código
   CyberpunkPlusPlus.vcxproj -> C:\RootProjects\CyberpunkPlusPlus\x64\Release\CyberpunkPlusPlus.exe

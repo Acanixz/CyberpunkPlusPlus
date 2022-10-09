@@ -3,13 +3,11 @@
 
 //#include "stdafx.h"
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <time.h>
-#include <conio.h>
-#include <Windows.h>
-#include <locale.h>
-#include <math.h>
+#include <fstream> // Animações
+#include <string> // Texto
+#include <time.h> // RNG
+#include <conio.h> // Coordenadas console
+#include <Windows.h> // Cor console
 using namespace std;
 
 // Palheta de cores //
@@ -102,17 +100,26 @@ struct Fase
 	Inimigo inimigos[5];
 	int inimigosRestantes = 0;
 	bool ganhou = false;
+	bool reset = false; // Recria a fase se R for apertado
 };
 
 // Funções //
 
 COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false)
 {
+	/*
+	* Obtém a posição do cursor do console, usado principalmente
+	* para o posicionamento do player
+	*/
 	CONSOLE_SCREEN_BUFFER_INFO consoleBuffer;
 	if (GetConsoleScreenBufferInfo(hConsoleOutput, &consoleBuffer))
 	{
 		COORD cursorCoords = consoleBuffer.dwCursorPosition;
-		if (isjogador) {
+		if (isjogador) { // 
+			/*
+			* Pois o jogador é desenhado primeiro, logo o cursor é
+			* 1 bloco para frente do esperado
+			*/
 			cursorCoords.X -= 1;
 		}
 		return cursorCoords;
@@ -123,20 +130,20 @@ COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false)
 	}
 }
 
-int RNG(int offset = 0, int max = 1) {
+int RNG(int offset = 0, int max = 1) { // Numeros aleatórios
 	int num = 0;
 	num = rand() % max + offset;
 	return num;
 }
 
-int Aproximacao(int valor) {
+int Aproximacao(int valor) { // Aproximação para par
 	if (valor % 2 != 0) {
 		valor++;
 	}
 	return valor;
 }
 
-Arma* GerarArmas() {
+Arma* GerarArmas() { // Cria endereço de armas
 	Arma* armas = new Arma[7];
 	armas[0].nome = "Punhos";
 	armas[0].descricaoAttk = " socou ";
@@ -214,15 +221,13 @@ Jogador* GerarJogador(Arma* arma) {
 	Jogador* jogador = new Jogador;
 	jogador->vida = jogador->vidaMaxima;
 	jogador->arma = arma;
-	//jogador->stats[1] = 1;
-	//jogador->stats[2] = 1;
-	//jogador->stats[3] = 1;
-	//jogador->stats[4] = 1;
-	//jogador->stats[0] = 99;
 	return jogador;
 }
 
 Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
+	/* Cada fase possui uma lista de inimigos que podem surgir
+	* essa é a lista contendo todos os inimigos que PODEM surgir
+	*/
 	Inimigo* inimigos = new Inimigo[4];
 	switch (levelId)
 	{
@@ -356,6 +361,7 @@ Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
 }
 
 Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3) {
+	// Escolhe os inimigos para gerar com base na função anterior
 	Inimigo* inimigos = new Inimigo[numInimigos];
 
 	for (int i = 0; i < numInimigos; i++) {
@@ -372,6 +378,7 @@ Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3) {
 }
 
 bool VerificarOpcao(int valor = 0, int min = 0, int max = 0) {
+	// Verifica se o valor está dentro do valor minimo e maximo
 	if (valor >= min && valor <= max) {
 		return true;
 	}
@@ -379,10 +386,15 @@ bool VerificarOpcao(int valor = 0, int min = 0, int max = 0) {
 }
 
 void LimparInputBuffer() {
+	/*Apertar teclas antes da leitura resulta
+	no armazenamento da tecla no buffer
+	então essa função é chamada antes para a limpeza do mesmo*/
 	while (_kbhit()) _getch();
 }
 
 void EsperarInput(char teclaEsperada = '0', int waitTimer = 50) {
+	// Usado para os "Aperte qualquer tecla para continuar"
+	// ele também pode esperar uma tecla especifica
 	while (true) {
 		char tecla = _getch();
 		if (teclaEsperada == '0' || tecla == teclaEsperada)
@@ -393,6 +405,10 @@ void EsperarInput(char teclaEsperada = '0', int waitTimer = 50) {
 }
 
 void Display(string msg, int coordX = -1, int coordY = -1, int textColor = 7, bool showCursor = false, bool centralize = false) {
+	/*Função usada para todo o display do jogo
+	* com parametros para posicionamento via coordenadas,
+	* ajuste de visibilidade do cursor, centralização e cores
+	*/
 	HANDLE STD_OH = GetStdHandle(STD_OUTPUT_HANDLE);
 	if (coordX >= 0 || coordY >= 0) {
 		CONSOLE_CURSOR_INFO cursorInfo;
@@ -417,6 +433,8 @@ void Display(string msg, int coordX = -1, int coordY = -1, int textColor = 7, bo
 }
 
 void DisplayAnimation(string filePath, string fileName, int frames = -1, int textColor = 7, int cornerX = -1, int cornerY = -1, int waitTime = 1000) {
+	// Função para display de arquivos .txt
+	// Usado no display das ASCII Arts
 	string linha;
 	ifstream frame;
 	int i = 0; // Linha atual
@@ -424,7 +442,6 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
 	switch (frames)
 	{
 	case -1: // Mostra apenas um frame
-		/* code */
 		frame.open(filePath + fileName);
 		while (getline(frame, linha)) {
 			Display(linha, cornerX, cornerY + i, textColor);
@@ -451,10 +468,16 @@ void DisplayAnimation(string filePath, string fileName, int frames = -1, int tex
 }
 
 void LimparCores() {
+	/* Se o console escrever novos textos (incluindo ajustar tela)
+	* ele irá usar a ultima cor usada, podendo quebrar o jogo
+	* Esaa função cria faz um display vazio, porém cor a cor padrão
+	* para resolver isso
+	*/
 	Display("", 50, 12, 7);
 }
 
 void LimparTela(int tipo = 0) {
+	// Limpeza total da tela ou em espaços especificos
 	int Y = 0;
 	switch (tipo)
 	{
@@ -485,7 +508,7 @@ void LimparTela(int tipo = 0) {
 		break;
 
 	default:
-		LimparCores();  // Se der cls antes disso, a tela fica com a ultima cor usada
+		LimparCores();
 		system("cls");
 		break;
 	}
@@ -528,6 +551,9 @@ void Carregar_Tutorial() {
 }
 
 bool VerificarCoord(Fase* fase, int tipo, int coords[2] = { 0 }) {
+	/* Verificações da coordenada fornecida dependendo do tipo
+	* fornecido
+	*/ 
 	switch (tipo)
 	{
 	case 0: // Verificação por existência do bloco na grade (Y e X)
@@ -569,8 +595,8 @@ Mapa CriarMapa(int A, int L) {
 	Display("Gerando obstaculos", 50, 12, 10, false, true);
 	for (int i = 0; i < A; i++) {
 		for (int j = 0; j < L; j++) {
-			int temObstaculo = RNG(1, 10);
-			if (temObstaculo <= 2) {
+			int temObstaculo = RNG(1, 10); // 1 até 10
+			if (temObstaculo <= 2) { // 20% chance de bloquear
 				mapa.blocos[i][j].bloqueado = true;
 			}
 		}
@@ -610,13 +636,13 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 	int bordaX = 50 - L / 2;
 	Aproximacao(bordaX);
 
-	for (int i = 0; i < L; i++) {
+	for (int i = 0; i < L; i++) { // Criação da borda horizontal
 		borda = borda + "-";
 	}
 	borda = borda + "@";
 	Display(borda, bordaX - 1, 10, 7);
 
-	for (int i = 0; i < A; i++) {
+	for (int i = 0; i < A; i++) { // Display da matriz mapa
 		for (int j = 0; j < L; j++) {
 
 			Display(" ", bordaX + j, 11 + i, corChao);
@@ -643,7 +669,7 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 	Display("Fase: " + fase->nome, 50, 1, 10, false, true);
 }
 
-void DisplayStatusJogador(Jogador* jogador) {
+void DisplayStatusJogador(Jogador* jogador) { // Status do jogador no mapa
 	Display("          ", 50, 2, 10, false, true);
 	Display("Vida: " + to_string(jogador->vida), 50, 2, 10, false, true);
 	Display("                  ", 50, 3, 10, false, true);
@@ -653,9 +679,9 @@ void DisplayStatusJogador(Jogador* jogador) {
 void Movimentar(Jogador* jogador, Fase* fase) {
 	DisplayStatusJogador(jogador);
 	int moveDelta[2] = { 0 };
-	bool debounce[4] = { false };
-	for (int i = 0; i < 4; i++) {
-		if (_kbhit()) {
+	bool debounce[4] = { false }; // Evita repetir tecla no mesmo frame
+	for (int i = 0; i < 2; i++) {
+		if (_kbhit()) { // Detecção de até 2 teclas em um frame, permitindo diagonais
 			char tecla = _getch();
 			if ((tecla == 'W' || tecla == 'w') && debounce[0] == false) {
 				debounce[0] = true;
@@ -676,10 +702,14 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 				debounce[3] = true;
 				moveDelta[1] += 1;
 			}
+
+			if (tecla == 'R' || tecla == 'r') { // Keybind p/ recriar fase
+				fase->reset = true;
+			}
 		}
 	}
 
-	if (moveDelta[0] != 0 || moveDelta[1] != 0) {
+	if (moveDelta[0] != 0 || moveDelta[1] != 0) { // Personagem se moveu?
 		int novaPosicao[2] = { 0 };
 		novaPosicao[0] = jogador->posicao[0] + moveDelta[0]; // Y
 		novaPosicao[1] = jogador->posicao[1] + moveDelta[1]; // X
@@ -703,7 +733,7 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 					}
 				}
 
-				if (jogador->vida > 0) { // Descarregamento por passos
+				if (jogador->vida > 0) { // Regeneração por passos
 					jogador->vida += 5; // +5 vida por passo
 					if (jogador->vida >= jogador->vidaMaxima) {
 						jogador->vida = jogador->vidaMaxima;
@@ -724,6 +754,9 @@ void ataque(Inimigo* atacante, Jogador* defensor, int &Ylog, bool bloqueando = f
 void jogarFase(Jogador* jogador, Fase* fase);
 
 void escolhaSaque(Jogador* jogador, Inimigo* inimigo) {
+	/*Tela para decidir roubar a arma do inimigo falecido
+	* ou manter a arma
+	*/
 	LimparTela();
 	Display("Item encontrado", 50, 10, 10, false, true);
 	Display(inimigo->arma->nome + " de " + inimigo->nome + " parece ainda funcionar, substituir arma atual?", 50, 11, 10, false, true);
@@ -853,6 +886,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			Display("Assistencia de mira em uso!", 50, 28, 10);
 		}
 
+		// DECISÃO DE ATAQUE
 		int escolha = 0;
 		int escolhaAux = 0; // Variavel temporaria para decisões
 		if (jogador->stats[0] < 100) { // Livre escolha caso n tenha ciberpsicose
@@ -910,7 +944,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			}
 		}
 
-		if (Ylog > 20) {
+		if (Ylog > 20) { // Limpeza do log de combate
 			Ylog = 1;
 			LimparTela(2);
 		}
@@ -943,7 +977,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			}
 			break;
 
-		case 11:
+		case 11: // Sandevistan
 			Display("Voce usou o Sandevistan!", 100, Ylog, 10, false, true);
 			Ylog++;
 			jogador->stats[2] = 3; // Sandevistan = +2 ações + ação atual
@@ -955,7 +989,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			}
 			break;
 
-		case 12:
+		case 12: // Implante Regenerativo
 			Display("Voce usou o I. Regenerativo!", 100, Ylog, 10, false, true);
 			Ylog++;
 			jogador->stats[3] = 2; // Implante renegerativo = 2 turnos de cura
@@ -972,7 +1006,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			}
 			break;
 
-		case 13:
+		case 13: // Kiroshi Optics
 			Display("Voce usou o Kiroshi Opctics!", 100, Ylog, 10, false, true);
 			Ylog++;
 			jogador->stats[4] = 2; // Kiroshi Optics = Prox. Turno c/ precisão aumentada
@@ -996,14 +1030,14 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	}
 
 	LimparTela(1);
-	if (morreu(inimigo) && morreu(jogador) == false) {
+	if (morreu(inimigo) && morreu(jogador) == false) { // Vitoria
 		Display("Voce" + jogador->arma->killMsg + inimigo->nome, 1, 23, 10);
 		// Remove todos os buffs de implantes, combate acabou
 		jogador->stats[2] = 0; // -Sandevistan
 		jogador->stats[3] = 0; // -Implante Regenerativo
 		jogador->stats[4] = 0; // -Kiroshi Optics
 	}
-	else {
+	else { // Derrota
 		Display(inimigo->nome + inimigo->arma->killMsg + "voce", 1, 23, 10);
 	}
 	Display("Aperte qualquer tecla p/ continuar", 1, 24, 160);
@@ -1012,13 +1046,21 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	EsperarInput();
 
 	if (morreu(inimigo) && morreu(jogador) == false && jogador->arma != inimigo->arma && inimigo->arma->nome != "Punhos" && RNG(0, 2) == 1) {
+		/*Condições para tela de saque:
+			1 - Você precisa estar vivo e o inimigo morreu
+
+			2 - Os items não podem ser iguais
+
+			3 - O item inimigo não pode ser punhos
+
+			4 - Existe apenas 50% de chance de este evento acontecer
+		*/
 		escolhaSaque(jogador, inimigo);
 	}
 }
 
 int main()
 {
-	setlocale(LC_ALL, "Portuguese");
 	srand(time(NULL));
 
 	// DADOS DO JOGO, GERADO APENAS UMA VEZ
@@ -1030,8 +1072,8 @@ int main()
 	bool gameLoop = true;
 	////////////////////
 
-	while (gameLoop == true) {
-		gameLoop = false;
+	while (gameLoop == true) { // Loop para voltar ao menu ao fim de jogo
+		gameLoop = false; // Decidido no final
 		LimparTela();
 		Carregar_Menu();
 		LimparInputBuffer();
@@ -1042,15 +1084,23 @@ int main()
 		LimparInputBuffer();
 		EsperarInput();
 
-		//Jogador* jogador = GerarJogador(&armas[0]); // Jogador no soco
-		Jogador* jogador = GerarJogador(&armas[0]); // Jogador teste
+		Jogador* jogador = GerarJogador(&armas[0]);
+
+		int ultimoLevelId = -1;
 		for (int levelId = 0; levelId < 3; levelId++) {
 			LimparTela();
 			Display("Criando " + nomeFases[levelId], 50, 10, 10, false, true);
 			Sleep(500);
-			int numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
-			if (jogador->stats[0] >= 100) { // Dobro em caso de ciberpsicopatia
-				numInimigos *= 2;
+			int numInimigos = 3; // Inicialização
+			if (ultimoLevelId != levelId) {
+				/* Aleatoriza quantidade inimigos se, e apenas se
+				* é uma fase nova, se for um reset, a quantidade se manterá igual
+				*/
+				ultimoLevelId = levelId;
+				numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
+				if (jogador->stats[0] >= 100) { // Dobro em caso de ciberpsicopatia
+					numInimigos *= 2;
+				}
 			}
 			Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
 			Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
@@ -1058,7 +1108,7 @@ int main()
 
 			Display("Gerando jogador", 50, 14, 10, false, true);
 
-			while (jogador->posicao[0] == -1) {
+			while (jogador->posicao[0] == -1) { // Posicionamento aleatório do jogador
 				int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
 				if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
 					if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
@@ -1072,16 +1122,21 @@ int main()
 			DisplayFase(fase, jogador);
 			LimparInputBuffer();
 			jogarFase(jogador, fase);
+			// Fim da fase, desalocação de memória e conclusões abaixo
 			delete[] inimigosEscolhidos;
 			delete[] inimigosPreset;
 			for (int i = 0; i < fase->mapa.A; i++) {
 				delete[] fase->mapa.blocos[i];
 			}
-			if (fase->ganhou == false) {
+			if (fase->ganhou == false && fase->reset == false) {
 				levelId = 999; // Encerramento do for loop, game over!
 			}
+			if (fase->reset) {
+				levelId--; // Recriando fase, remover incremento
+			}
+
 			delete fase;
-			jogador->posicao[0] = -1;
+			jogador->posicao[0] = -1; // Reposicionamento obrigatório
 		}
 
 		LimparTela();
@@ -1259,7 +1314,7 @@ void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando)
 
 void jogarFase(Jogador* jogador, Fase* fase)
 {
-	while (morreu(jogador) == false && fase->ganhou == false)
+	while (morreu(jogador) == false && fase->ganhou == false && fase->reset == false)
 	{
 		Movimentar(jogador, fase);
 		if (fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].temInimigo) {
@@ -1268,6 +1323,7 @@ void jogarFase(Jogador* jogador, Fase* fase)
 			DisplayAnimation("Frames/CombatInitiation/", "Shatter_", 12, 10, 4, 2, 10);
 			LimparTela();
 			iniciarCombate(jogador, fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo);
+			// Combate encerrou
 			if (morreu(jogador) == false) {
 				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo = NULL;
 				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].temInimigo = false;
