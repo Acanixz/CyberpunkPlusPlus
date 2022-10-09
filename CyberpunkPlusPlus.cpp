@@ -524,6 +524,7 @@ void Carregar_Tutorial() {
 	Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, 7, false, true);
 	Sleep(1000);
 	Display("Aperte qualquer tecla para comecar", 50, 27, 160, false, true);
+	LimparCores();
 }
 
 bool VerificarCoord(Fase* fase, int tipo, int coords[2] = { 0 }) {
