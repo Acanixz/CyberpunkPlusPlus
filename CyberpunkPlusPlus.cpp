@@ -1023,7 +1023,7 @@ int main()
 
 	// DADOS DO JOGO, GERADO APENAS UMA VEZ
 	Arma* armas = GerarArmas();
-	string nomeFases[3] = { "Bairro 1", "Bairro 2", "Torre Arasaka" };
+	string nomeFases[3] = { "Heywood", "South Pacifica", "Torre Arasaka" };
 	int alturaFases[3] = { 10,5,15 };
 	int larguraFases[3] = { 20,30,40 };
 	int quantidadeInimigos[3] = { RNG(1, 5), RNG(1, 5), RNG(1, 5) };
