@@ -1,5 +1,4 @@
-// CyberpunkPlusPlus.cpp : define o ponto de entrada para o aplicativo do console.
-//
+#pragma region includes
 
 //#include "stdafx.h"
 #include <iostream>
@@ -8,7 +7,12 @@
 #include <time.h> // RNG
 #include <conio.h> // Coordenadas console
 #include <Windows.h> // Cor console
+
+#pragma endregion
+
 using namespace std;
+
+#pragma region Variaveis
 
 // Palheta de cores //
 int corChao = 136;
@@ -21,8 +25,10 @@ int custoSandevistan = 50;
 int custoImpReg = 25;
 int custoKiroshiOptics = 25;
 
+#pragma endregion
 
-// Structs // 
+#pragma region Structs
+
 struct Arma
 {
 	string nome;
@@ -103,9 +109,205 @@ struct Fase
 	bool reset = false; // Recria a fase se R for apertado
 };
 
-// Funções //
+#pragma endregion
 
-COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false)
+#pragma region Templates
+
+template <typename T>
+bool morreu(T personagem);
+
+template <typename T>
+bool morreu(T personagem)
+{
+	if (personagem->vida <= 0)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+#pragma endregion
+
+#pragma region Ações Jogador
+
+void ataque(Jogador* atacante, Inimigo* defensor, int& Ylog);
+void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando = false);
+void jogarFase(Jogador* jogador, Fase* fase);
+
+#pragma endregion
+
+#pragma region Declaração das Funções
+
+COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false);
+int RNG(int offset = 0, int max = 1);
+int Aproximacao(int valor);
+Arma* GerarArmas();
+Jogador* GerarJogador(Arma* arma);
+Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0);
+Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3);
+bool VerificarOpcao(int valor = 0, int min = 0, int max = 0);
+void LimparInputBuffer();
+void EsperarInput(char teclaEsperada = '0', int waitTimer = 50);
+void Display(string msg, int coordX = -1, int coordY = -1, int textColor = 7, bool showCursor = false, bool centralize = false);
+void DisplayAnimation(string filePath, string fileName, int frames = -1, int textColor = 7, int cornerX = -1, int cornerY = -1, int waitTime = 1000);
+void LimparCores();
+void LimparTela(int tipo = 0);
+void Carregar_Menu();
+void Carregar_Tutorial();
+bool VerificarCoord(Fase* fase, int tipo, int coords[2] = { 0 });
+Mapa CriarMapa(int A, int L);
+Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa, int larguraMapa);
+void DisplayFase(Fase* fase, Jogador* jogador);
+void DisplayStatusJogador(Jogador* jogador);
+void Movimentar(Jogador* jogador, Fase* fase);
+void escolhaSaque(Jogador* jogador, Inimigo* inimigo);
+void iniciarCombate(Jogador* jogador, Inimigo* inimigo);
+void ataque(Jogador* atacante, Inimigo* defensor, int& Ylog);
+void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando);
+void jogarFase(Jogador* jogador, Fase* fase);
+
+#pragma endregion
+
+int main()
+{
+	srand(time(NULL));
+
+	// DADOS DO JOGO, GERADO APENAS UMA VEZ
+	Arma* armas = GerarArmas();
+	string nomeFases[3] = { "Heywood", "South Pacifica", "Torre Arasaka" };
+	int alturaFases[3] = { 10,5,15 };
+	int larguraFases[3] = { 20,30,40 };
+	int quantidadeInimigos[3] = { RNG(1, 5), RNG(1, 5), RNG(1, 5) };
+	bool gameLoop = true;
+	////////////////////
+
+	while (gameLoop == true) { // Loop para voltar ao menu ao fim de jogo
+		gameLoop = false; // Decidido no final
+		LimparTela();
+		Carregar_Menu();
+		LimparInputBuffer();
+		EsperarInput();
+		LimparTela();
+
+		Carregar_Tutorial();
+		LimparInputBuffer();
+		EsperarInput();
+
+		Jogador* jogador = GerarJogador(&armas[0]);
+
+		int ultimoLevelId = -1;
+		for (int levelId = 0; levelId < 3; levelId++) {
+			LimparTela();
+			Display("Criando " + nomeFases[levelId], 50, 10, 10, false, true);
+			Sleep(500);
+			int numInimigos = 3; // Inicialização
+			if (ultimoLevelId != levelId) {
+				/* Aleatoriza quantidade inimigos se, e apenas se
+				* é uma fase nova, se for um reset, a quantidade se manterá igual
+				*/
+				ultimoLevelId = levelId;
+				numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
+				if (jogador->stats[0] >= 100) { // Dobro em caso de ciberpsicopatia
+					numInimigos *= 2;
+				}
+			}
+			Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
+			Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
+			Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
+
+			Display("Gerando jogador", 50, 14, 10, false, true);
+
+			while (jogador->posicao[0] == -1) { // Posicionamento aleatório do jogador
+				int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
+				if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
+					if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
+						// Espaço livre, sem inimigos
+						jogador->posicao[0] = localEscolhido[0]; // Posicionar Y
+						jogador->posicao[1] = localEscolhido[1]; // Posicionar X
+					}
+				}
+			}
+			LimparTela();
+			DisplayFase(fase, jogador);
+			LimparInputBuffer();
+			jogarFase(jogador, fase);
+			// Fim da fase, desalocação de memória e conclusões abaixo
+			delete[] inimigosEscolhidos;
+			delete[] inimigosPreset;
+			for (int i = 0; i < fase->mapa.A; i++) {
+				delete[] fase->mapa.blocos[i];
+			}
+			if (fase->ganhou == false && fase->reset == false) {
+				levelId = 999; // Encerramento do for loop, game over!
+			}
+			if (fase->reset) {
+				levelId--; // Recriando fase, remover incremento
+			}
+
+			delete fase;
+			jogador->posicao[0] = -1; // Reposicionamento obrigatório
+		}
+
+		LimparTela();
+
+		if (jogador->vida > 0) { // Luta final
+			Inimigo* adam_Smasher = new Inimigo;
+			adam_Smasher->nome = "Adam Smasher";
+			adam_Smasher->vidaMaxima = 100;
+			adam_Smasher->vida = adam_Smasher->vidaMaxima;
+			adam_Smasher->arma = &armas[4]; // Metralhadora Pesada
+			adam_Smasher->spriteFile = "AdamSmasher.txt";
+			adam_Smasher->spriteColor = 12; // Vermelho
+			adam_Smasher->stats[0] = -3; // Destreza
+			adam_Smasher->stats[1] = 2; // Crit base
+			adam_Smasher->stats[2] = 2; // Dodge base
+
+			iniciarCombate(jogador, adam_Smasher);
+			delete adam_Smasher;
+		}
+
+		LimparTela();
+
+		if (jogador->vida > 0) { // Venceu o game
+			Display("Parabens!", 50, 1, 10, false, true);
+			Display("Voce derrotou Adam Smasher e provou-se digno de Night City", 50, 2, 10, false, true);
+		}
+		else { // Game over
+			Display("Game over!", 50, 1, 10, false, true);
+		}
+
+		Display("Deseja voltar ao menu ou encerrar o jogo?", 50, 4, 10, false, true);
+		Display("1 - Voltar ao menu", 50, 5, 10, false, true);
+		Display("2 - Fechar jogo", 50, 6, 10, false, true);
+		int escolhaGameLoop = 0;
+		while (VerificarOpcao(escolhaGameLoop, 1, 2) == false) {
+			if (escolhaGameLoop == -1) {
+				Display("Opcao invalida!", 50, 9, 4, false, true);
+			}
+			Display("                   ", 50, 8, 7, true, true);
+			Display("", 50, 8, 10, true, true);
+			cin >> escolhaGameLoop;
+			if (VerificarOpcao(escolhaGameLoop, 1, 2) == false) {
+				escolhaGameLoop = -1;
+			}
+		}
+
+		if (escolhaGameLoop == 1) { // Voltar ao menu e continuar execução
+			gameLoop = true;
+		}
+		else {
+			LimparTela();
+		}
+		delete jogador;
+	}
+}
+
+#pragma region Funções
+
+COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador)
 {
 	/*
 	* Obtém a posição do cursor do console, usado principalmente
@@ -130,7 +332,7 @@ COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false)
 	}
 }
 
-int RNG(int offset = 0, int max = 1) { // Numeros aleatórios
+int RNG(int offset, int max) { // Numeros aleatórios
 	int num = 0;
 	num = rand() % max + offset;
 	return num;
@@ -224,7 +426,7 @@ Jogador* GerarJogador(Arma* arma) {
 	return jogador;
 }
 
-Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
+Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId) {
 	/* Cada fase possui uma lista de inimigos que podem surgir
 	* essa é a lista contendo todos os inimigos que PODEM surgir
 	*/
@@ -360,7 +562,7 @@ Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId = 0) {
 	return inimigos;
 }
 
-Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3) {
+Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos) {
 	// Escolhe os inimigos para gerar com base na função anterior
 	Inimigo* inimigos = new Inimigo[numInimigos];
 
@@ -377,7 +579,7 @@ Inimigo* EscolherInimigos(Inimigo* inimigosPreset, int numInimigos = 3) {
 	return inimigos;
 }
 
-bool VerificarOpcao(int valor = 0, int min = 0, int max = 0) {
+bool VerificarOpcao(int valor, int min, int max) {
 	// Verifica se o valor está dentro do valor minimo e maximo
 	if (valor >= min && valor <= max) {
 		return true;
@@ -392,7 +594,7 @@ void LimparInputBuffer() {
 	while (_kbhit()) _getch();
 }
 
-void EsperarInput(char teclaEsperada = '0', int waitTimer = 50) {
+void EsperarInput(char teclaEsperada, int waitTimer) {
 	// Usado para os "Aperte qualquer tecla para continuar"
 	// ele também pode esperar uma tecla especifica
 	while (true) {
@@ -404,7 +606,7 @@ void EsperarInput(char teclaEsperada = '0', int waitTimer = 50) {
 	LimparInputBuffer();
 }
 
-void Display(string msg, int coordX = -1, int coordY = -1, int textColor = 7, bool showCursor = false, bool centralize = false) {
+void Display(string msg, int coordX, int coordY, int textColor, bool showCursor, bool centralize) {
 	/*Função usada para todo o display do jogo
 	* com parametros para posicionamento via coordenadas,
 	* ajuste de visibilidade do cursor, centralização e cores
@@ -432,7 +634,7 @@ void Display(string msg, int coordX = -1, int coordY = -1, int textColor = 7, bo
 	cout << msg;
 }
 
-void DisplayAnimation(string filePath, string fileName, int frames = -1, int textColor = 7, int cornerX = -1, int cornerY = -1, int waitTime = 1000) {
+void DisplayAnimation(string filePath, string fileName, int frames, int textColor, int cornerX, int cornerY, int waitTime) {
 	// Função para display de arquivos .txt
 	// Usado no display das ASCII Arts
 	string linha;
@@ -476,7 +678,7 @@ void LimparCores() {
 	Display("", 50, 12, 7);
 }
 
-void LimparTela(int tipo = 0) {
+void LimparTela(int tipo) {
 	// Limpeza total da tela ou em espaços especificos
 	int Y = 0;
 	switch (tipo)
@@ -550,7 +752,7 @@ void Carregar_Tutorial() {
 	LimparCores();
 }
 
-bool VerificarCoord(Fase* fase, int tipo, int coords[2] = { 0 }) {
+bool VerificarCoord(Fase* fase, int tipo, int coords[]) {
 	/* Verificações da coordenada fornecida dependendo do tipo
 	* fornecido
 	*/ 
@@ -744,14 +946,6 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 	}
 	Sleep(50);
 }
-
-template <typename T>
-bool morreu(T personagem);
-
-void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog);
-void ataque(Inimigo* atacante, Jogador* defensor, int &Ylog, bool bloqueando = false);
-
-void jogarFase(Jogador* jogador, Fase* fase);
 
 void escolhaSaque(Jogador* jogador, Inimigo* inimigo) {
 	/*Tela para decidir roubar a arma do inimigo falecido
@@ -1059,153 +1253,6 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	}
 }
 
-int main()
-{
-	srand(time(NULL));
-
-	// DADOS DO JOGO, GERADO APENAS UMA VEZ
-	Arma* armas = GerarArmas();
-	string nomeFases[3] = { "Heywood", "South Pacifica", "Torre Arasaka" };
-	int alturaFases[3] = { 10,5,15 };
-	int larguraFases[3] = { 20,30,40 };
-	int quantidadeInimigos[3] = { RNG(1, 5), RNG(1, 5), RNG(1, 5) };
-	bool gameLoop = true;
-	////////////////////
-
-	while (gameLoop == true) { // Loop para voltar ao menu ao fim de jogo
-		gameLoop = false; // Decidido no final
-		LimparTela();
-		Carregar_Menu();
-		LimparInputBuffer();
-		EsperarInput();
-		LimparTela();
-
-		Carregar_Tutorial();
-		LimparInputBuffer();
-		EsperarInput();
-
-		Jogador* jogador = GerarJogador(&armas[0]);
-
-		int ultimoLevelId = -1;
-		for (int levelId = 0; levelId < 3; levelId++) {
-			LimparTela();
-			Display("Criando " + nomeFases[levelId], 50, 10, 10, false, true);
-			Sleep(500);
-			int numInimigos = 3; // Inicialização
-			if (ultimoLevelId != levelId) {
-				/* Aleatoriza quantidade inimigos se, e apenas se
-				* é uma fase nova, se for um reset, a quantidade se manterá igual
-				*/
-				ultimoLevelId = levelId;
-				numInimigos = RNG(3, 3); // Entre 3 a 5 inimigos por fase
-				if (jogador->stats[0] >= 100) { // Dobro em caso de ciberpsicopatia
-					numInimigos *= 2;
-				}
-			}
-			Inimigo* inimigosPreset = GerarInimigosPreset(armas, levelId);
-			Inimigo* inimigosEscolhidos = EscolherInimigos(inimigosPreset, numInimigos);
-			Fase* fase = CriarFase(numInimigos, inimigosEscolhidos, nomeFases[levelId], alturaFases[levelId], larguraFases[levelId]);
-
-			Display("Gerando jogador", 50, 14, 10, false, true);
-
-			while (jogador->posicao[0] == -1) { // Posicionamento aleatório do jogador
-				int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
-				if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
-					if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
-						// Espaço livre, sem inimigos
-						jogador->posicao[0] = localEscolhido[0]; // Posicionar Y
-						jogador->posicao[1] = localEscolhido[1]; // Posicionar X
-					}
-				}
-			}
-			LimparTela();
-			DisplayFase(fase, jogador);
-			LimparInputBuffer();
-			jogarFase(jogador, fase);
-			// Fim da fase, desalocação de memória e conclusões abaixo
-			delete[] inimigosEscolhidos;
-			delete[] inimigosPreset;
-			for (int i = 0; i < fase->mapa.A; i++) {
-				delete[] fase->mapa.blocos[i];
-			}
-			if (fase->ganhou == false && fase->reset == false) {
-				levelId = 999; // Encerramento do for loop, game over!
-			}
-			if (fase->reset) {
-				levelId--; // Recriando fase, remover incremento
-			}
-
-			delete fase;
-			jogador->posicao[0] = -1; // Reposicionamento obrigatório
-		}
-
-		LimparTela();
-
-		if (jogador->vida > 0) { // Luta final
-			Inimigo* adam_Smasher = new Inimigo;
-			adam_Smasher->nome = "Adam Smasher";
-			adam_Smasher->vidaMaxima = 100;
-			adam_Smasher->vida = adam_Smasher->vidaMaxima;
-			adam_Smasher->arma = &armas[4]; // Metralhadora Pesada
-			adam_Smasher->spriteFile = "AdamSmasher.txt";
-			adam_Smasher->spriteColor = 12; // Vermelho
-			adam_Smasher->stats[0] = -3; // Destreza
-			adam_Smasher->stats[1] = 2; // Crit base
-			adam_Smasher->stats[2] = 2; // Dodge base
-
-			iniciarCombate(jogador, adam_Smasher);
-			delete adam_Smasher;
-		}
-
-		LimparTela();
-		
-		if (jogador->vida > 0) { // Venceu o game
-			Display("Parabens!", 50, 1, 10, false, true);
-			Display("Voce derrotou Adam Smasher e provou-se digno de Night City", 50, 2, 10, false, true);
-		}
-		else { // Game over
-			Display("Game over!", 50, 1, 10, false, true);
-		}
-
-		Display("Deseja voltar ao menu ou encerrar o jogo?", 50, 4, 10, false, true);
-		Display("1 - Voltar ao menu", 50, 5, 10, false, true);
-		Display("2 - Fechar jogo", 50, 6, 10, false, true);
-		int escolhaGameLoop = 0;
-		while (VerificarOpcao(escolhaGameLoop, 1, 2) == false) {
-			if (escolhaGameLoop == -1) {
-				Display("Opcao invalida!", 50, 9, 4, false, true);
-			}
-			Display("                   ", 50, 8, 7, true, true);
-			Display("", 50, 8, 10, true, true);
-			cin >> escolhaGameLoop;
-			if (VerificarOpcao(escolhaGameLoop, 1, 2) == false) {
-				escolhaGameLoop = -1;
-			}
-		}
-		
-		if (escolhaGameLoop == 1) { // Voltar ao menu e continuar execução
-			gameLoop = true;
-		}
-		else {
-			LimparTela();
-		}
-		delete jogador;
-	}
-}
-
-template <typename T>
-bool morreu(T personagem)
-{
-	if (personagem->vida <= 0)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
 void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 {
 	int totalTiros = atacante->arma->stats[3];
@@ -1338,3 +1385,5 @@ void jogarFase(Jogador* jogador, Fase* fase)
 		}
 	}
 }
+
+#pragma endregion
