@@ -1,6 +1,6 @@
 #pragma region includes
 
-//#include "stdafx.h"
+#include "stdafx.h"
 #include <iostream>
 #include <fstream> // Animações
 #include <string> // Texto
@@ -264,6 +264,7 @@ int main()
 			adam_Smasher->stats[0] = -3; // Destreza
 			adam_Smasher->stats[1] = 2; // Crit base
 			adam_Smasher->stats[2] = 2; // Dodge base
+			adam_Smasher->stats[3] = 1; // Sandevistan Bonus
 
 			iniciarCombate(jogador, adam_Smasher);
 			delete adam_Smasher;
@@ -318,10 +319,10 @@ COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador)
 	{
 		COORD cursorCoords = consoleBuffer.dwCursorPosition;
 		if (isjogador) { // 
-			/*
-			* Pois o jogador é desenhado primeiro, logo o cursor é
-			* 1 bloco para frente do esperado
-			*/
+						 /*
+						 * Pois o jogador é desenhado primeiro, logo o cursor é
+						 * 1 bloco para frente do esperado
+						 */
 			cursorCoords.X -= 1;
 		}
 		return cursorCoords;
@@ -527,6 +528,7 @@ Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId) {
 		inimigos[0].stats[0] = 2; // Destreza
 		inimigos[0].stats[1] = 2; // Crit base
 		inimigos[0].stats[2] = 2; // Dodge base
+		inimigos[0].stats[3] = 1; // Sandevistan Bonus
 
 		inimigos[1].nome = "Tril.-Redes";
 		inimigos[1].vidaMaxima = 35;
@@ -537,6 +539,7 @@ Inimigo* GerarInimigosPreset(Arma* listaArmas, int levelId) {
 		inimigos[1].stats[0] = -2; // Destreza
 		inimigos[1].stats[1] = 4; // Crit base
 		inimigos[1].stats[2] = -2; // Dodge base
+		inimigos[1].stats[3] = 1; // Sandevistan Bonus
 
 		inimigos[2].nome = "Cyberpsycho";
 		inimigos[2].vidaMaxima = 50;
@@ -755,7 +758,7 @@ void Carregar_Tutorial() {
 bool VerificarCoord(Fase* fase, int tipo, int coords[]) {
 	/* Verificações da coordenada fornecida dependendo do tipo
 	* fornecido
-	*/ 
+	*/
 	switch (tipo)
 	{
 	case 0: // Verificação por existência do bloco na grade (Y e X)
@@ -788,7 +791,7 @@ Mapa CriarMapa(int A, int L) {
 
 	mapa.A = A;
 	mapa.L = L;
-	mapa.blocos = new Bloco * [A]; // Geração de linhas
+	mapa.blocos = new Bloco *[A]; // Geração de linhas
 
 	for (int i = 0; i < A; i++) { // Geração de colunas
 		mapa.blocos[i] = new Bloco[L];
@@ -1048,7 +1051,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 		else {
 			Display("Vida: " + to_string(jogador->vida) + "(PERIGO!)", 50, 24, 4);
 		}
-		
+
 
 		if (jogador->stats[0] >= 50) { // Sobrecarga
 			if (jogador->stats[0] >= 75) {
@@ -1124,7 +1127,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 				}
 			}
 
-			
+
 		}
 		else { // Ciberpsicose, combate automatico
 			escolhaAux = RNG(1, 3);
@@ -1187,7 +1190,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			Display("Voce usou o I. Regenerativo!", 100, Ylog, 10, false, true);
 			Ylog++;
 			jogador->stats[3] = 2; // Implante renegerativo = 2 turnos de cura
-			
+
 			if (jogador->stats[0] < 100) {
 				jogador->stats[0] += custoImpReg; // + Sobrecarga - 10
 			}
@@ -1241,13 +1244,13 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 
 	if (morreu(inimigo) && morreu(jogador) == false && jogador->arma != inimigo->arma && inimigo->arma->nome != "Punhos" && RNG(0, 2) == 1) {
 		/*Condições para tela de saque:
-			1 - Você precisa estar vivo e o inimigo morreu
+		1 - Você precisa estar vivo e o inimigo morreu
 
-			2 - Os items não podem ser iguais
+		2 - Os items não podem ser iguais
 
-			3 - O item inimigo não pode ser punhos
+		3 - O item inimigo não pode ser punhos
 
-			4 - Existe apenas 50% de chance de este evento acontecer
+		4 - Existe apenas 50% de chance de este evento acontecer
 		*/
 		escolhaSaque(jogador, inimigo);
 	}
@@ -1269,7 +1272,7 @@ void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 
 		if (atacante->stats[2] > 0 && defensor->stats[3] <= 0) { // Sandevistan check
 			acertou = 10; // Se sandevistan ativo e inimigo não tem sandevistan, acertou!
-		} 
+		}
 		if (acertou >= 10) { // Alvo acertado
 			DisplayAnimation("Frames/Enemies/", defensor->spriteFile, -1, 4, 0, 0);
 			int crit = RNG(1 + atacante->arma->stats[1], 20); // 1 + Crit bonus arma
@@ -1313,7 +1316,7 @@ void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando)
 		int danoOriginal = dano;
 		dano -= defensor->stats[5];
 		defensor->stats[5] -= danoOriginal;
-		
+
 
 		int acertou = RNG(1 - defensor->arma->stats[2], 20); // 1 - Dodge bonus jogador
 		if (dano <= 0) {
