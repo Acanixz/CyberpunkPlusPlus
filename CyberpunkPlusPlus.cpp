@@ -1,6 +1,6 @@
 #pragma region includes
 
-#include "stdafx.h"
+//#include "stdafx.h" // Usado no pc da univali
 #include <iostream>
 #include <fstream> // Animações
 #include <string> // Texto
@@ -103,7 +103,7 @@ struct Fase
 {
 	string nome;
 	Mapa mapa;
-	Inimigo inimigos[5];
+	Inimigo inimigos[10]; // Maximo 10 inimigos
 	int inimigosRestantes = 0;
 	bool ganhou = false;
 	bool reset = false; // Recria a fase se R for apertado
