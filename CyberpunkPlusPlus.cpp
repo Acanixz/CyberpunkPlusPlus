@@ -131,7 +131,7 @@ bool morreu(T personagem)
 
 #pragma endregion
 
-#pragma region Ações Jogador
+#pragma region Acoes Jogador
 
 void ataque(Jogador* atacante, Inimigo* defensor, int& Ylog);
 void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando = false);
@@ -139,7 +139,7 @@ void jogarFase(Jogador* jogador, Fase* fase);
 
 #pragma endregion
 
-#pragma region Declaração das Funções
+#pragma region Declaracao das Funcoes
 
 COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador = false);
 int RNG(int offset = 0, int max = 1);
@@ -240,6 +240,7 @@ int main()
 			for (int i = 0; i < fase->mapa.A; i++) {
 				delete[] fase->mapa.blocos[i];
 			}
+			delete[] fase->mapa.blocos;
 			if (fase->ganhou == false && fase->reset == false) {
 				levelId = 999; // Encerramento do for loop, game over!
 			}
@@ -306,7 +307,7 @@ int main()
 	}
 }
 
-#pragma region Funções
+#pragma region Funcoes
 
 COORD ObterPosicaoCursor(HANDLE hConsoleOutput, bool isjogador)
 {
