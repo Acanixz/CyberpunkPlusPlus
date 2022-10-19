@@ -353,9 +353,19 @@ int main()
 		if (jogador->vida > 0) { // Venceu o game
 			Display("Parabens!", 50, 1, 10, false, true);
 			Display("Voce derrotou Adam Smasher e provou-se digno de Night City", 50, 2, 10, false, true);
+			Beep(500, 100);
+			Beep(600, 100);
+			Beep(550, 100);
+			Beep(800, 1000);
 		}
 		else { // Game over
 			Display("Game over!", 50, 1, 10, false, true);
+			Beep(70, 1000);
+			Beep(350, 300);
+			Beep(750, 450);
+			Beep(500, 250);
+			Beep(300, 1500);
+			Beep(64, 2000);
 		}
 
 		Display("Deseja voltar ao menu ou encerrar o jogo?", 50, 4, 10, false, true);
@@ -685,6 +695,7 @@ void EsperarInput(char teclaEsperada, int waitTimer) {
 		Sleep(waitTimer);
 	}
 	LimparInputBuffer();
+	Beep(250, 300);
 }
 
 void Display(string msg, int coordX, int coordY, int textColor, bool showCursor, bool centralize) {
@@ -1025,6 +1036,7 @@ void Movimentar(Jogador* jogador, Fase* fase) {
 
 		if (VerificarCoord(fase, 0, novaPosicao)) { // Espaço existe?
 			if (VerificarCoord(fase, 1, novaPosicao) == false) { // Espaço está livre?
+				Beep(500, 50);
 				Display(" ", jogador->posicaoTela.X, jogador->posicaoTela.Y, corChao);
 				jogador->posicao[0] = novaPosicao[0];
 				jogador->posicao[1] = novaPosicao[1];
@@ -1269,6 +1281,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 			jogador->stats[5] = RNG(5, 20); // Conceder overshield aleatório
 			Display("Voce ativou OverS. (" + to_string(jogador->stats[5]) + "dmg DEF)", 100, Ylog, 10, false, true);
 			Ylog++;
+			Beep(750, 50);
 			if (jogador->stats[2] <= 0) { // Sandevistan check
 				ataque(inimigo, jogador, Ylog);
 			}
@@ -1277,6 +1290,12 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 		case 11: // Sandevistan
 			Display("Voce usou o Sandevistan!", 100, Ylog, 10, false, true);
 			Ylog++;
+			for (int i = 210; i > 100; i -= 50) {
+				Beep(i, 30);
+			}
+			for (int i = 400; i < 550; i += 50) {
+				Beep(i, 30);
+			}
 			jogador->stats[2] = 3; // Sandevistan = +2 ações + ação atual
 			if (jogador->stats[0] < 100) {
 				jogador->stats[0] += custoSandevistan; // + Sobrecarga
@@ -1289,6 +1308,9 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 		case 12: // Implante Regenerativo
 			Display("Voce usou o I. Regenerativo!", 100, Ylog, 10, false, true);
 			Ylog++;
+			for (int i = 70; i < 255; i += 30) {
+				Beep(i, 33);
+			}
 			jogador->stats[3] = 2; // Implante renegerativo = 2 turnos de cura
 
 			if (jogador->stats[0] < 100) {
@@ -1305,6 +1327,9 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 
 		case 13: // Kiroshi Optics
 			Display("Voce usou o Kiroshi Opctics!", 100, Ylog, 10, false, true);
+			for (int i = 500; i < 700; i += 50) {
+				Beep(i, 25);
+			}
 			Ylog++;
 			jogador->stats[4] = 2; // Kiroshi Optics = Prox. Turno c/ precisão aumentada
 
@@ -1337,6 +1362,7 @@ void iniciarCombate(Jogador* jogador, Inimigo* inimigo) {
 	else { // Derrota
 		Display(inimigo->nome + inimigo->arma->killMsg + "voce", 1, 23, 10);
 	}
+	Beep(70, 1500);
 	Display("Aperte qualquer tecla p/ continuar", 1, 24, 160);
 	LimparCores();
 	LimparInputBuffer();
@@ -1374,6 +1400,7 @@ void ataque(Jogador* atacante, Inimigo* defensor, int &Ylog)
 			acertou = 10; // Se sandevistan ativo e inimigo não tem sandevistan, acertou!
 		}
 		if (acertou >= 10) { // Alvo acertado
+			Beep(300, 250);
 			DisplayAnimation("Frames/Enemies/", defensor->spriteFile, -1, 4, 0, 0);
 			int crit = RNG(1 + atacante->arma->stats[1], 20); // 1 + Crit bonus arma
 
@@ -1436,6 +1463,7 @@ void ataque(Inimigo* atacante, Jogador* defensor, int& Ylog, bool bloqueando)
 		}
 
 		if (acertou >= 10) { // Alvo acertado
+			Beep(700, 250);
 			int crit = RNG(1 + atacante->stats[1], 20); // 1 + Crit base inimigo
 
 			if (crit >= 10) {
@@ -1472,9 +1500,12 @@ void jogarFase(Jogador* jogador, Fase* fase)
 			LimparTela();
 			DisplayAnimation("Frames/CombatInitiation/", "Shatter_", 12, 10, 4, 2, 10);
 			LimparTela();
+			Beep(100, 500);
 			iniciarCombate(jogador, fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo);
 			// Combate encerrou
 			if (morreu(jogador) == false) {
+				Beep(500, 50);
+				Beep(120, 100);
 				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo = NULL;
 				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].temInimigo = false;
 				fase->inimigosRestantes--;
