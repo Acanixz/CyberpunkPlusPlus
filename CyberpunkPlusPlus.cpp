@@ -19,6 +19,7 @@ int corChao = 136;
 int corObstaculo = 85;
 int corJogador = 139;
 int corInimigo = 140;
+int corPontoFinal = 130;
 
 // Custos de Implantes //
 int custoSandevistan = 50;
@@ -90,6 +91,7 @@ struct Bloco
 {
 	bool bloqueado = false;
 	bool temInimigo = false;
+	bool verificado = false; // Utilizado na geração para checagem de caminho
 	Inimigo* inimigo = NULL;
 };
 
@@ -104,9 +106,11 @@ struct Fase
 	string nome;
 	Mapa mapa;
 	Inimigo inimigos[10]; // Maximo 10 inimigos
+	Bloco* blocosInimigos[10]; // Coordenadas dos inimigos, usado p/ verificar geração
 	int inimigosRestantes = 0;
 	bool ganhou = false;
 	bool reset = false; // Recria a fase se R for apertado
+	int posicaoFinal[2] = { -1, -1 }; // Objetivo final
 };
 
 #pragma endregion
@@ -180,7 +184,6 @@ int main()
 	string nomeFases[3] = { "Heywood", "South Pacifica", "Torre Arasaka" };
 	int alturaFases[3] = { 10,5,15 };
 	int larguraFases[3] = { 20,30,40 };
-	int quantidadeInimigos[3] = { RNG(1, 5), RNG(1, 5), RNG(1, 5) };
 	bool gameLoop = true;
 	////////////////////
 
@@ -202,7 +205,6 @@ int main()
 		for (int levelId = 0; levelId < 3; levelId++) {
 			LimparTela();
 			Display("Criando " + nomeFases[levelId], 50, 10, 10, false, true);
-			Sleep(500);
 			int numInimigos = 3; // Inicialização
 			if (ultimoLevelId != levelId) {
 				/* Aleatoriza quantidade inimigos se, e apenas se
@@ -220,7 +222,43 @@ int main()
 
 			Display("Gerando jogador", 50, 14, 10, false, true);
 
-			while (jogador->posicao[0] == -1) { // Posicionamento aleatório do jogador
+			int pontaEscolhida = RNG(0, 4);
+			switch (pontaEscolhida)
+			{
+				/* Decide posição inicial do jogador em uma das pontas
+				*  e então assigna a ponta oposta como ponto final do mapa
+				*/
+			case 0: // Cima-Esquerda
+				jogador->posicao[0] = 0; // Y Player
+				jogador->posicao[1] = 0; // X Player
+				fase->posicaoFinal[0] = alturaFases[levelId] - 1; // Y Final
+				fase->posicaoFinal[1] = larguraFases[levelId] - 1; // X Final
+				break;
+
+			case 1: // Cima-Direita
+				jogador->posicao[0] = 0; // Y Player
+				jogador->posicao[1] = larguraFases[levelId] - 1; // X Player
+				fase->posicaoFinal[0] = alturaFases[levelId] - 1; // Y Final
+				fase->posicaoFinal[1] = 0; // X Final
+				break;
+
+			case 2: // Baixo-Esquerda
+				jogador->posicao[0] = alturaFases[levelId] - 1; // Y Player
+				jogador->posicao[1] = 0; // X Player
+				fase->posicaoFinal[0] = 0; // Y Final
+				fase->posicaoFinal[1] = larguraFases[levelId] - 1; // X Final
+				break;
+
+			case 3: // Baixo-Direita
+				jogador->posicao[0] = alturaFases[levelId] - 1; // Y Player
+				fase->posicaoFinal[1] = larguraFases[levelId] - 1; // X Player
+				fase->posicaoFinal[0] = 0; // Y Final
+				fase->posicaoFinal[1] = 0; // X Final
+				break;
+			}
+			// Posicionamento do jogador em uma ponta
+
+			/*while (jogador->posicao[0] == -1) { // Posicionamento aleatório do jogador
 				int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
 				if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
 					if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
@@ -229,11 +267,61 @@ int main()
 						jogador->posicao[1] = localEscolhido[1]; // Posicionar X
 					}
 				}
+			}*/
+
+			VerificarCoord(fase, 3, jogador->posicao);
+			/* Para a fase ser gerada com sucesso, o score precisa seguir os requisitos:
+			*  - Ser verificado a partir do ponto incial do player até o ponto final
+			*  - Cada inimigo conta +1 para o score, ponto final também
+			*  - Um mapa concluivel possui uma pontuação de: Quantidade de inimigos + 1
+			*/
+
+			bool levelConcluivel = true;
+			for (int i = 0; i < numInimigos; i++) {
+				
+				if (fase->blocosInimigos[i]->verificado == false) {
+					// Verificação se inimigos são acessiveis
+					levelConcluivel = false;
+					Display("Inimigos inacessiveis", 50, 17, 10, false, true);
+				}
 			}
+			if (fase->mapa.blocos[fase->posicaoFinal[0]][fase->posicaoFinal[1]].verificado == false) {
+				// Verificação se final do mapa é acessivel
+				levelConcluivel = false;
+				Display("Final do mapa inacessivel", 50, 16, 10, false, true);
+			}
+
+			if (VerificarCoord(fase, 1, fase->posicaoFinal) == true || VerificarCoord(fase, 2, fase->posicaoFinal) == true) {
+				// Verificação por inimigos/obstaculos na posição final
+				levelConcluivel = false;
+				Display("Inicio ou fim obstruidos", 50, 18, 10, false, true);
+			}
+
+			if (VerificarCoord(fase, 1, jogador->posicao) == true || VerificarCoord(fase, 2, jogador->posicao) == true) {
+				// Verificação por inimigos/obstaculos na posição final
+				levelConcluivel = false;
+				Display("Inicio ou fim obstruidos", 50, 18, 10, false, true);
+			}
+			
+
+			if (levelConcluivel) {
+				Display("Sucesso! iniciando..", 50, 19, 10, false, true);
+			}
+			else {
+				Display("Erro!", 50, 15, 10, false, true);
+				Display("Tentando novamente..", 50, 19, 10, false, true);
+			}
+			//Sleep(100);
+			
 			LimparTela();
-			DisplayFase(fase, jogador);
-			LimparInputBuffer();
-			jogarFase(jogador, fase);
+			if (levelConcluivel) {
+				DisplayFase(fase, jogador);
+				LimparInputBuffer();
+				jogarFase(jogador, fase);
+			}
+			else {
+				fase->reset = true;
+			}
 			// Fim da fase, desalocação de memória e conclusões abaixo
 			delete[] inimigosEscolhidos;
 			delete[] inimigosPreset;
@@ -242,7 +330,7 @@ int main()
 			}
 			delete[] fase->mapa.blocos;
 			if (fase->ganhou == false && fase->reset == false) {
-				levelId = 999; // Encerramento do for loop, game over!
+				break; // Fim do loop, game over!
 			}
 			if (fase->reset) {
 				levelId--; // Recriando fase, remover incremento
@@ -740,17 +828,20 @@ void Carregar_Tutorial() {
 	Display("Tutorial Basico:", 30, 2, 7, false, true);
 
 	Display("#", 20, 4, corJogador);
-	Display("<--- Jogador", 30, 4, 7, false, true);
+	Display("<--- Jogador", 25, 4, 7);
 	Display("#", 20, 7, corInimigo);
-	Display("<--- Inimigo", 30, 7, 7, false, true);
+	Display("<--- Inimigo", 25, 7, 7);
+	Display("#", 20, 10, corPontoFinal);
+	Display("<--- Fim da fase", 25, 10, 7);
 
-	Display(" ", 20, 11, corChao);
-	Display("<--- Chao", 30, 11, 7, false, true);
-	Display(" ", 20, 14, corObstaculo);
-	Display("<--- Parede", 30, 14, 7, false, true);
+	Display(" ", 20, 14, corChao);
+	Display("<--- Chao", 25, 14, 7);
+	Display(" ", 20, 17, corObstaculo);
+	Display("<--- Parede", 25, 17, 7);
+	
 
 	Display("Use as teclas WASD para se movimentar pelo mapa (Incluindo diagonalmente)", 50, 23, 7, false, true);
-	Display("Objetivo: mate todos os inimigos e derrote Adam Smasher", 50, 25, 7, false, true);
+	Display("Objetivo: mate todos os inimigos, va ate a torre Arasaka e derrote Adam Smasher", 50, 25, 7, false, true);
 	Sleep(1000);
 	Display("Aperte qualquer tecla para comecar", 50, 27, 160, false, true);
 	LimparCores();
@@ -781,6 +872,19 @@ bool VerificarCoord(Fase* fase, int tipo, int coords[]) {
 		}
 		break;
 
+	case 3: // Verificação recursiva p/ geração
+		fase->mapa.blocos[coords[0]][coords[1]].verificado = true;
+
+		for (int i = coords[0] - 1; i <= coords[0] + 1; i++) { // Y
+			for (int j = coords[1] - 1; j <= coords[1] + 1; j++) { // X
+				int coordRecursiva[2] = { i, j };
+				if (VerificarCoord(fase, 0, coordRecursiva) && fase->mapa.blocos[i][j].verificado == false && fase->mapa.blocos[i][j].bloqueado == false) {
+					VerificarCoord(fase, 3, coordRecursiva);
+				}
+			}
+		}
+		break;
+
 	default:
 		break;
 	}
@@ -802,7 +906,7 @@ Mapa CriarMapa(int A, int L) {
 	for (int i = 0; i < A; i++) {
 		for (int j = 0; j < L; j++) {
 			int temObstaculo = RNG(1, 10); // 1 até 10
-			if (temObstaculo <= 2) { // 20% chance de bloquear
+			if (temObstaculo <= 5) { // 50% chance de bloquear
 				mapa.blocos[i][j].bloqueado = true;
 			}
 		}
@@ -827,6 +931,7 @@ Fase* CriarFase(int numInimigos, Inimigo* inimigos, string nome, int alturaMapa,
 				// Bloco livre, sem inimigos também
 				fase->mapa.blocos[coordEscolhida[0]][coordEscolhida[1]].inimigo = &inimigos[i];
 				fase->mapa.blocos[coordEscolhida[0]][coordEscolhida[1]].temInimigo = true;
+				fase->blocosInimigos[i] = &fase->mapa.blocos[coordEscolhida[0]][coordEscolhida[1]];
 				i++;
 			}
 		}
@@ -860,6 +965,11 @@ void DisplayFase(Fase* fase, Jogador* jogador) {
 
 			if (fase->mapa.blocos[i][j].inimigo != NULL) {
 				Display("#", bordaX + j, 11 + i, corInimigo);
+			}
+
+
+			if (i == fase->posicaoFinal[0] && j == fase->posicaoFinal[1] && fase->inimigosRestantes <= 0) {
+				Display("#", bordaX + j, 11 + i, 138);
 			}
 
 			if (jogador->posicao[0] == i && jogador->posicao[1] == j) {
@@ -1379,13 +1489,15 @@ void jogarFase(Jogador* jogador, Fase* fase)
 				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].inimigo = NULL;
 				fase->mapa.blocos[jogador->posicao[0]][jogador->posicao[1]].temInimigo = false;
 				fase->inimigosRestantes--;
-				if (fase->inimigosRestantes <= 0) {
-					fase->ganhou = true;
-				}
 				LimparTela();
 				DisplayFase(fase, jogador);
 				LimparInputBuffer();
 			}
+		}
+
+		if (fase->inimigosRestantes <= 0 && jogador->posicao[0] == fase->posicaoFinal[0] && jogador->posicao[1] == fase->posicaoFinal[1]) {
+			// Todos os inimigos morreram e jogador está no ponto final
+			fase->ganhou = true;
 		}
 	}
 }
