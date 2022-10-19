@@ -223,6 +223,7 @@ int main()
 			Display("Gerando jogador", 50, 14, 10, false, true);
 
 			int pontaEscolhida = RNG(0, 4);
+			// Posicionamento do jogador em uma ponta do mapa
 			switch (pontaEscolhida)
 			{
 				/* Decide posição inicial do jogador em uma das pontas
@@ -256,24 +257,12 @@ int main()
 				fase->posicaoFinal[1] = 0; // X Final
 				break;
 			}
-			// Posicionamento do jogador em uma ponta
-
-			/*while (jogador->posicao[0] == -1) { // Posicionamento aleatório do jogador
-				int localEscolhido[2] = { RNG(0, fase->mapa.A), RNG(0, fase->mapa.L) };
-				if (VerificarCoord(fase, 0, localEscolhido)) { // Espaço existe?
-					if (VerificarCoord(fase, 1, localEscolhido) == false && VerificarCoord(fase, 2, localEscolhido) == false) {
-						// Espaço livre, sem inimigos
-						jogador->posicao[0] = localEscolhido[0]; // Posicionar Y
-						jogador->posicao[1] = localEscolhido[1]; // Posicionar X
-					}
-				}
-			}*/
 
 			VerificarCoord(fase, 3, jogador->posicao);
-			/* Para a fase ser gerada com sucesso, o score precisa seguir os requisitos:
-			*  - Ser verificado a partir do ponto incial do player até o ponto final
-			*  - Cada inimigo conta +1 para o score, ponto final também
-			*  - Um mapa concluivel possui uma pontuação de: Quantidade de inimigos + 1
+			/* Para a fase ser gerada com sucesso, a geração precisa seguir os requisitos:
+			*  - Todos os inimigos precisam ser verificados
+			*  - Ponto final precisa ser verificado
+			*  - Ponto inicial/final não podem ter inimigos/obstaculos
 			*/
 
 			bool levelConcluivel = true;
