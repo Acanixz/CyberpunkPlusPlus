@@ -7,6 +7,7 @@
 #include <time.h> // RNG
 #include <conio.h> // Coordenadas console
 #include <Windows.h> // Cor console
+#include <math.h>
 
 #pragma endregion
 
@@ -674,6 +675,11 @@ bool VerificarOpcao(int valor, int min, int max) {
 	// Verifica se o valor está dentro do valor minimo e maximo
 	if (valor >= min && valor <= max) {
 		return true;
+	}
+
+	if (!cin.good()){
+		cin.clear();
+        cin.ignore(INFINITE, '\n');
 	}
 	return false;
 }
