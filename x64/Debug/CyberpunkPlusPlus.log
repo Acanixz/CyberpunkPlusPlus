@@ -1,8 +1,0 @@
-﻿  CyberpunkPlusPlus.cpp
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(405,40): warning C4267: '=': conversão de 'size_t' para 'SHORT', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(476,77): warning C4305: 'argumento': truncamento de 'int' para 'bool'
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(804,41): warning C4244: '+=': conversão de 'double' para 'int', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1021,12): warning C4244: 'argumento': conversão de 'time_t' para 'unsigned int', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1179,13): warning C4244: '*=': conversão de 'double' para 'int', possível perda de dados
-C:\RootProjects\CyberpunkPlusPlus\CyberpunkPlusPlus.cpp(1236,13): warning C4244: '*=': conversão de 'double' para 'int', possível perda de dados
-  CyberpunkPlusPlus.vcxproj -> C:\RootProjects\CyberpunkPlusPlus\x64\Debug\CyberpunkPlusPlus.exe
